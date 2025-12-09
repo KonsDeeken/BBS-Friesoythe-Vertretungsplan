@@ -201,7 +201,7 @@ ENTSTANDEN.
 ### Projekt-Informationen
 
 - **Projektseite**: [bbs.deeken.digital](https://bbs.deeken.digital)
-- **GitHub Repository**: [BBS-Friesoythe-Vertretungsplan](https://github.com/Dark-Studios-UG/BBS-Friesoythe-Vertretungsplan)
+- **GitHub Repository**: [BBS-Friesoythe-Vertretungsplan](https://github.com/KonsDeeken/BBS-Friesoythe-Vertretungsplan)
 - **Verbesserungsvorschläge**: [Feedback-Formular](https://forms.gle/SdA2HfNGgqiHhsoa9)
 
 ### DeekenDigital
