@@ -34,7 +34,8 @@ if (!fs.existsSync(dataDir)) {
  * @returns {boolean} true wenn Wochenende (Samstag oder Sonntag)
  */
 const isWeekend = (date) => {
-    const day = date.getDay();
+    // Verwende getUTCDay() für konsistente Prüfung unabhängig von lokaler Zeitzone
+    const day = date.getUTCDay();
     return day === 0 || day === 6; // 0 = Sonntag, 6 = Samstag
 };
 
@@ -45,9 +46,9 @@ const isWeekend = (date) => {
  */
 const getNextSchoolDay = (date) => {
     const nextDay = new Date(date);
-    nextDay.setDate(nextDay.getDate() + 1);
+    nextDay.setUTCDate(nextDay.getUTCDate() + 1);
     while (isWeekend(nextDay)) {
-        nextDay.setDate(nextDay.getDate() + 1);
+        nextDay.setUTCDate(nextDay.getUTCDate() + 1);
     }
     return nextDay;
 };
@@ -57,18 +58,46 @@ const getNextSchoolDay = (date) => {
  * @returns {string} Datum im Format YYYY-MM-DD
  */
 const getCorrectDate = () => {
-    // Erstelle Datum in deutscher Zeitzone
+    // Erstelle Datum in deutscher Zeitzone (Europe/Berlin)
     const now = new Date();
-    const germanTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Berlin' }));
+    
+    // Verwende Intl.DateTimeFormat für zuverlässige Zeitzone-Konvertierung
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Europe/Berlin',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+    
+    const parts = formatter.formatToParts(now);
+    const germanDate = {
+        year: parseInt(parts.find(p => p.type === 'year').value),
+        month: parseInt(parts.find(p => p.type === 'month').value) - 1, // 0-indexed
+        day: parseInt(parts.find(p => p.type === 'day').value),
+        hour: parseInt(parts.find(p => p.type === 'hour').value)
+    };
+    
+    // Erstelle Date-Objekt für deutsche Zeit (UTC-basiert, aber mit korrekten Werten)
+    const germanTime = new Date(Date.UTC(
+        germanDate.year,
+        germanDate.month,
+        germanDate.day,
+        germanDate.hour,
+        0, 0, 0
+    ));
     
     // Wenn es nach SWITCH_HOUR ist, zum nächsten Tag springen
-    if (germanTime.getHours() >= SWITCH_HOUR) {
+    if (germanDate.hour >= SWITCH_HOUR) {
         // Wenn aktuell Wochenende ist und nach SWITCH_HOUR, zum nächsten Schultag springen
         if (isWeekend(germanTime)) {
             const nextSchoolDay = getNextSchoolDay(germanTime);
             return nextSchoolDay.toISOString().split('T')[0];
         }
-        germanTime.setDate(germanTime.getDate() + 1);
+        germanTime.setUTCDate(germanTime.getUTCDate() + 1);
         // Wenn der nächste Tag ein Wochenende ist, zum nächsten Schultag springen
         if (isWeekend(germanTime)) {
             const nextSchoolDay = getNextSchoolDay(germanTime);
@@ -80,7 +109,11 @@ const getCorrectDate = () => {
         return nextSchoolDay.toISOString().split('T')[0];
     }
     
-    return germanTime.toISOString().split('T')[0];
+    // Formatiere das Datum korrekt (YYYY-MM-DD)
+    const year = germanDate.year;
+    const month = String(germanDate.month + 1).padStart(2, '0');
+    const day = String(germanDate.day).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 };
 
 // Add retry logic helper function
@@ -367,11 +400,12 @@ const cleanupOldTempFiles = () => {
     try {
         // Aktuelles Datum ermitteln
         const currentDateStr = getCorrectDate();
-        const currentDate = new Date(currentDateStr);
+        // Parse das Datum (Format: YYYY-MM-DD)
+        const [year, month, day] = currentDateStr.split('-').map(Number);
+        let currentDateObj = new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0));
         
         // Berechne die nächsten 4 Schultage
         const datesToKeep = [];
-        let currentDateObj = new Date(currentDate);
         
         // Stelle sicher, dass wir mit einem Schultag starten
         if (isWeekend(currentDateObj)) {
@@ -409,11 +443,14 @@ const cleanupOldTempFiles = () => {
 const saveTemporaryData = async () => {
     try {
         const { dataToday, dataTomorrow, dataDayAfterTomorrow, dataDayAfterDayAfterTomorrow } = await scrapeData();
-        const currentDate = getCorrectDate();
+        const currentDateStr = getCorrectDate();
+        
+        // Parse das Datum (Format: YYYY-MM-DD)
+        const [year, month, day] = currentDateStr.split('-').map(Number);
+        let currentDateObj = new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0));
         
         // Berechne die nächsten 4 Schultage
         const dates = [];
-        let currentDateObj = new Date(currentDate);
         
         // Stelle sicher, dass wir mit einem Schultag starten
         if (isWeekend(currentDateObj)) {
@@ -459,11 +496,14 @@ const createDailyBackup = async () => {
     try {
         console.log("Creating daily backup for 4 days...");
         const { dataToday, dataTomorrow, dataDayAfterTomorrow, dataDayAfterDayAfterTomorrow } = await scrapeData();
-        const currentDate = getCorrectDate();
+        const currentDateStr = getCorrectDate();
+        
+        // Parse das Datum (Format: YYYY-MM-DD)
+        const [year, month, day] = currentDateStr.split('-').map(Number);
+        let currentDateObj = new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0));
         
         // Berechne die nächsten 4 Schultage
         const dates = [];
-        let currentDateObj = new Date(currentDate);
         
         // Stelle sicher, dass wir mit einem Schultag starten
         if (isWeekend(currentDateObj)) {
@@ -532,9 +572,13 @@ app.get('/api/data', async (req, res) => {
 
 app.get('/api/morgen', async (req, res) => {
     try {
-        const currentDate = getCorrectDate();
+        const currentDateStr = getCorrectDate();
+        // Parse das Datum (Format: YYYY-MM-DD)
+        const [year, month, day] = currentDateStr.split('-').map(Number);
+        const currentDate = new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0));
+        
         const tomorrowDate = new Date(currentDate);
-        tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+        tomorrowDate.setUTCDate(tomorrowDate.getUTCDate() + 1);
         
         // Wenn der nächste Tag ein Wochenende ist, zum nächsten Schultag springen
         if (isWeekend(tomorrowDate)) {
@@ -557,11 +601,13 @@ app.get('/api/morgen', async (req, res) => {
 // Endpunkt für 4 Schultage
 app.get('/api/both', async (req, res) => {
     try {
-        const currentDate = getCorrectDate();
+        const currentDateStr = getCorrectDate();
+        // Parse das Datum (Format: YYYY-MM-DD)
+        const [year, month, day] = currentDateStr.split('-').map(Number);
+        let currentDateObj = new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0));
         
         // Berechne die nächsten 4 Schultage
         const dates = [];
-        let currentDateObj = new Date(currentDate);
         
         // Stelle sicher, dass wir mit einem Schultag starten
         if (isWeekend(currentDateObj)) {

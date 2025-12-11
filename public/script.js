@@ -246,15 +246,16 @@ class DateManager {
     static SWITCH_HOUR = 17;
 
     static isWeekend(date) {
-        const day = date.getDay();
+        // Verwende getUTCDay() für konsistente Prüfung unabhängig von lokaler Zeitzone
+        const day = date.getUTCDay();
         return day === 0 || day === 6; // 0 = Sonntag, 6 = Samstag
     }
 
     static getNextSchoolDay(date) {
         const nextDay = new Date(date);
-        nextDay.setDate(nextDay.getDate() + 1);
+        nextDay.setUTCDate(nextDay.getUTCDate() + 1);
         while (this.isWeekend(nextDay)) {
-            nextDay.setDate(nextDay.getDate() + 1);
+            nextDay.setUTCDate(nextDay.getUTCDate() + 1);
         }
         return nextDay;
     }
@@ -262,16 +263,44 @@ class DateManager {
     static getCurrentDate() {
         // Verwende deutsche Zeitzone (Europe/Berlin)
         const now = new Date();
-        const germanTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Berlin' }));
         
-        if (germanTime.getHours() >= this.SWITCH_HOUR) {
+        // Verwende Intl.DateTimeFormat für zuverlässige Zeitzone-Konvertierung
+        const formatter = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'Europe/Berlin',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+        
+        const parts = formatter.formatToParts(now);
+        const germanDate = {
+            year: parseInt(parts.find(p => p.type === 'year').value),
+            month: parseInt(parts.find(p => p.type === 'month').value) - 1, // 0-indexed
+            day: parseInt(parts.find(p => p.type === 'day').value),
+            hour: parseInt(parts.find(p => p.type === 'hour').value)
+        };
+        
+        // Erstelle Date-Objekt für deutsche Zeit (UTC-basiert, aber mit korrekten Werten)
+        const germanTime = new Date(Date.UTC(
+            germanDate.year,
+            germanDate.month,
+            germanDate.day,
+            germanDate.hour,
+            0, 0, 0
+        ));
+        
+        if (germanDate.hour >= this.SWITCH_HOUR) {
             // Wenn aktuelle Zeit nach SWITCH_HOUR ist und heute Wochenende, zum nächsten Schultag springen
             if (this.isWeekend(germanTime)) {
                 return this.getNextSchoolDay(germanTime);
             }
             
             const tomorrow = new Date(germanTime);
-            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
             
             // Wenn morgen Wochenende ist, zum nächsten Schultag springen
             if (this.isWeekend(tomorrow)) {
@@ -289,7 +318,7 @@ class DateManager {
 
     static getTomorrowDate() {
         const tomorrow = new Date(this.getCurrentDate());
-        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
         
         // Wenn morgen Wochenende ist, zum nächsten Schultag springen
         if (this.isWeekend(tomorrow)) {
@@ -315,10 +344,10 @@ class DateManager {
     }
 
     static dateToString(date) {
-        // Konvertiert Date zu YYYY-MM-DD String
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
+        // Konvertiert Date zu YYYY-MM-DD String (verwendet UTC für Konsistenz)
+        const year = date.getUTCFullYear();
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(date.getUTCDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
     }
 
