@@ -12,7 +12,9 @@ const SWITCH_HOUR = 17; // Ab dieser Uhrzeit wird auf den nächsten Tag umgescha
 
 const URLS = {
     TODAY: 'https://bbs-friesoythe.webuntis.com/WebUntis/monitor?school=bbs-friesoythe&monitorType=subst&format=Vertretung%20heute',
-    TOMORROW: 'https://bbs-friesoythe.webuntis.com/WebUntis/monitor?school=bbs-friesoythe&monitorType=subst&format=Vertretung%20morgen'
+    TOMORROW: 'https://bbs-friesoythe.webuntis.com/WebUntis/monitor?school=bbs-friesoythe&monitorType=subst&format=Vertretung%20morgen',
+    DAY_AFTER_TOMORROW: 'https://bbs-friesoythe.webuntis.com/WebUntis/monitor?school=bbs-friesoythe&monitorType=subst&format=Vertretung%202T%20vor',
+    DAY_AFTER_DAY_AFTER_TOMORROW: 'https://bbs-friesoythe.webuntis.com/WebUntis/monitor?school=bbs-friesoythe&monitorType=subst&format=Vertretung%203T%20vor'
 };
 
 // Express App Setup
@@ -122,11 +124,11 @@ const validateUrl = async (page, url) => {
 };
 
 /**
- * Scrapt die Vertretungsdaten von WebUntis
- * @returns {Promise<{dataToday: Array, dataTomorrow: Array}>}
+ * Scrapt die Vertretungsdaten von WebUntis für 4 Tage
+ * @returns {Promise<{dataToday: Array, dataTomorrow: Array, dataDayAfterTomorrow: Array, dataDayAfterDayAfterTomorrow: Array}>}
  */
 const scrapeData = async () => {
-    console.log("Starting scraping process...");
+    console.log("Starting scraping process for 4 days...");
     let browser;
     try {
         browser = await puppeteer.launch({
@@ -134,14 +136,16 @@ const scrapeData = async () => {
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
 
-        // Erstelle zwei separate Pages für parallele Verarbeitung
-        const [pageToday, pageTomorrow] = await Promise.all([
+        // Erstelle vier separate Pages für parallele Verarbeitung
+        const [pageToday, pageTomorrow, pageDayAfterTomorrow, pageDayAfterDayAfterTomorrow] = await Promise.all([
+            browser.newPage(),
+            browser.newPage(),
             browser.newPage(),
             browser.newPage()
         ]);
 
-        // Konfiguriere beide Pages
-        for (const page of [pageToday, pageTomorrow]) {
+        // Konfiguriere alle Pages
+        for (const page of [pageToday, pageTomorrow, pageDayAfterTomorrow, pageDayAfterDayAfterTomorrow]) {
             page.setDefaultTimeout(60000); // 60 seconds timeout
             await page.setViewport({ width: 1920, height: 1080 });
             await page.setRequestInterception(true);
@@ -156,9 +160,9 @@ const scrapeData = async () => {
             });
         }
 
-        // Parallel scraping für heute und morgen
-        console.log("Starting parallel scraping for today and tomorrow...");
-        const [dataToday, dataTomorrow] = await Promise.all([
+        // Parallel scraping für alle 4 Tage
+        console.log("Starting parallel scraping for 4 days...");
+        const [dataToday, dataTomorrow, dataDayAfterTomorrow, dataDayAfterDayAfterTomorrow] = await Promise.all([
             // Scrape heute
             retry(async () => {
                 console.log("Scraping today's data...");
@@ -178,10 +182,30 @@ const scrapeData = async () => {
                 const data = await extractTableData(pageTomorrow);
                 console.log(`Found ${data.length} entries for tomorrow`);
                 return data;
+            }),
+            // Scrape übernächster Tag (2T vor)
+            retry(async () => {
+                console.log("Scraping day after tomorrow's data...");
+                if (!await validateUrl(pageDayAfterTomorrow, URLS.DAY_AFTER_TOMORROW)) {
+                    throw new Error("Failed to access day after tomorrow's URL");
+                }
+                const data = await extractTableData(pageDayAfterTomorrow);
+                console.log(`Found ${data.length} entries for day after tomorrow`);
+                return data;
+            }),
+            // Scrape über-übernächster Tag (3T vor)
+            retry(async () => {
+                console.log("Scraping day after day after tomorrow's data...");
+                if (!await validateUrl(pageDayAfterDayAfterTomorrow, URLS.DAY_AFTER_DAY_AFTER_TOMORROW)) {
+                    throw new Error("Failed to access day after day after tomorrow's URL");
+                }
+                const data = await extractTableData(pageDayAfterDayAfterTomorrow);
+                console.log(`Found ${data.length} entries for day after day after tomorrow`);
+                return data;
             })
         ]);
 
-        return { dataToday, dataTomorrow };
+        return { dataToday, dataTomorrow, dataDayAfterTomorrow, dataDayAfterDayAfterTomorrow };
     } catch (error) {
         console.error("Error during scraping:", error);
         throw error;
@@ -337,35 +361,41 @@ const extractTableData = async (page) => {
 };
 
 /**
- * Löscht alte temporäre Dateien im data-Verzeichnis
+ * Löscht alte temporäre Dateien im data-Verzeichnis (behält die nächsten 4 Schultage)
  */
 const cleanupOldTempFiles = () => {
     try {
-        // Aktuelle Datum und das morgige Datum (oder nächster Schultag) ermitteln
+        // Aktuelles Datum ermitteln
         const currentDateStr = getCorrectDate();
         const currentDate = new Date(currentDateStr);
-        const tomorrowDate = new Date(currentDate);
-        tomorrowDate.setDate(tomorrowDate.getDate() + 1);
         
-        // Wenn der nächste Tag ein Wochenende ist, zum nächsten Schultag springen
-        const nextDate = isWeekend(tomorrowDate) 
-            ? getNextSchoolDay(tomorrowDate) 
-            : tomorrowDate;
-            
-        const nextDateStr = nextDate.toISOString().split('T')[0];
+        // Berechne die nächsten 4 Schultage
+        const datesToKeep = [];
+        let currentDateObj = new Date(currentDate);
+        
+        // Stelle sicher, dass wir mit einem Schultag starten
+        if (isWeekend(currentDateObj)) {
+            currentDateObj = getNextSchoolDay(currentDateObj);
+        }
+        
+        // Sammle die nächsten 4 Schultage
+        while (datesToKeep.length < 4) {
+            datesToKeep.push(currentDateObj.toISOString().split('T')[0]);
+            currentDateObj = getNextSchoolDay(currentDateObj);
+        }
         
         // Alle Dateien im data-Verzeichnis durchsuchen
         const files = fs.readdirSync(dataDir);
         
-        // Temporäre Dateien filtern und löschen, außer die aktuellen und morgigen
+        // Temporäre Dateien filtern und löschen, außer die nächsten 4 Schultage
         files.forEach(file => {
-            if (file.startsWith('temp_') && 
-                file !== `temp_${currentDateStr}.json` && 
-                file !== `temp_${nextDateStr}.json`) {
-                
-                const filePath = path.join(dataDir, file);
-                fs.unlinkSync(filePath);
-                console.log(`Alte temporäre Datei gelöscht: ${file}`);
+            if (file.startsWith('temp_')) {
+                const fileDate = file.replace('temp_', '').replace('.json', '');
+                if (!datesToKeep.includes(fileDate)) {
+                    const filePath = path.join(dataDir, file);
+                    fs.unlinkSync(filePath);
+                    console.log(`Alte temporäre Datei gelöscht: ${file}`);
+                }
             }
         });
     } catch (error) {
@@ -374,41 +404,31 @@ const cleanupOldTempFiles = () => {
 };
 
 /**
- * Speichert die temporären Vertretungsdaten
+ * Speichert die temporären Vertretungsdaten für 4 Tage
  */
 const saveTemporaryData = async () => {
     try {
-        const { dataToday, dataTomorrow } = await scrapeData();
+        const { dataToday, dataTomorrow, dataDayAfterTomorrow, dataDayAfterDayAfterTomorrow } = await scrapeData();
         const currentDate = getCorrectDate();
-        const tomorrowDate = new Date(currentDate);
-        tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+        
+        // Berechne die nächsten 4 Schultage
+        const dates = [];
+        let currentDateObj = new Date(currentDate);
+        
+        // Stelle sicher, dass wir mit einem Schultag starten
+        if (isWeekend(currentDateObj)) {
+            currentDateObj = getNextSchoolDay(currentDateObj);
+        }
+        
+        // Sammle die nächsten 4 Schultage
+        while (dates.length < 4) {
+            dates.push(currentDateObj.toISOString().split('T')[0]);
+            currentDateObj = getNextSchoolDay(currentDateObj);
+        }
         
         // Lösche alte temporäre Dateien
         cleanupOldTempFiles();
         
-        // Wenn der nächste Tag ein Wochenende ist, zum nächsten Schultag springen
-        if (isWeekend(tomorrowDate)) {
-            const nextSchoolDay = getNextSchoolDay(tomorrowDate);
-            const nextSchoolDayStr = nextSchoolDay.toISOString().split('T')[0];
-            
-            // Speichere Daten mit Kurs-Liste
-            const saveData = (data, date) => {
-                fs.writeFileSync(
-                    path.join(dataDir, `temp_${date}.json`),
-                    JSON.stringify({
-                        data,
-                        courses: [...new Set(data.map(item => item.kurs))]
-                    })
-                );
-            };
-
-            saveData(dataToday, currentDate);
-            saveData(dataTomorrow, nextSchoolDayStr);
-            return;
-        }
-        
-        const tomorrowDateStr = tomorrowDate.toISOString().split('T')[0];
-
         // Speichere Daten mit Kurs-Liste
         const saveData = (data, date) => {
             fs.writeFileSync(
@@ -420,47 +440,42 @@ const saveTemporaryData = async () => {
             );
         };
 
-        saveData(dataToday, currentDate);
-        saveData(dataTomorrow, tomorrowDateStr);
+        // Speichere alle 4 Tage
+        saveData(dataToday, dates[0]);
+        saveData(dataTomorrow, dates[1]);
+        saveData(dataDayAfterTomorrow, dates[2]);
+        saveData(dataDayAfterDayAfterTomorrow, dates[3]);
+        
+        console.log(`Saved data for 4 days: ${dates.join(', ')}`);
     } catch (error) {
         console.error('Fehler beim Speichern der temporären Daten:', error);
     }
 };
 
 /**
- * Erstellt ein tägliches Backup der Vertretungsdaten
+ * Erstellt ein tägliches Backup der Vertretungsdaten für 4 Tage
  */
 const createDailyBackup = async () => {
     try {
-        console.log("Creating daily backup...");
-        const { dataToday, dataTomorrow } = await scrapeData();
+        console.log("Creating daily backup for 4 days...");
+        const { dataToday, dataTomorrow, dataDayAfterTomorrow, dataDayAfterDayAfterTomorrow } = await scrapeData();
         const currentDate = getCorrectDate();
-        const tomorrowDate = new Date(currentDate);
-        tomorrowDate.setDate(tomorrowDate.getDate() + 1);
         
-        // Wenn der nächste Tag ein Wochenende ist, zum nächsten Schultag springen
-        if (isWeekend(tomorrowDate)) {
-            const nextSchoolDay = getNextSchoolDay(tomorrowDate);
-            const nextSchoolDayStr = nextSchoolDay.toISOString().split('T')[0];
-            
-            // Backup Daten speichern
-            const createBackup = (data, date) => {
-                fs.writeFileSync(
-                    path.join(dataDir, `data_${date}.json`),
-                    JSON.stringify({
-                        data,
-                        courses: [...new Set(data.map(item => item.kurs))]
-                    })
-                );
-            };
-
-            createBackup(dataToday, currentDate);
-            createBackup(dataTomorrow, nextSchoolDayStr);
-            return;
+        // Berechne die nächsten 4 Schultage
+        const dates = [];
+        let currentDateObj = new Date(currentDate);
+        
+        // Stelle sicher, dass wir mit einem Schultag starten
+        if (isWeekend(currentDateObj)) {
+            currentDateObj = getNextSchoolDay(currentDateObj);
         }
         
-        const tomorrowDateStr = tomorrowDate.toISOString().split('T')[0];
-
+        // Sammle die nächsten 4 Schultage
+        while (dates.length < 4) {
+            dates.push(currentDateObj.toISOString().split('T')[0]);
+            currentDateObj = getNextSchoolDay(currentDateObj);
+        }
+        
         // Backup Daten speichern
         const createBackup = (data, date) => {
             fs.writeFileSync(
@@ -472,8 +487,13 @@ const createDailyBackup = async () => {
             );
         };
 
-        createBackup(dataToday, currentDate);
-        createBackup(dataTomorrow, tomorrowDateStr);
+        // Speichere alle 4 Tage als Backup
+        createBackup(dataToday, dates[0]);
+        createBackup(dataTomorrow, dates[1]);
+        createBackup(dataDayAfterTomorrow, dates[2]);
+        createBackup(dataDayAfterDayAfterTomorrow, dates[3]);
+        
+        console.log(`Backup created for 4 days: ${dates.join(', ')}`);
     } catch (error) {
         console.error('Fehler beim Erstellen des Backups:', error);
     }
@@ -534,44 +554,67 @@ app.get('/api/morgen', async (req, res) => {
     }
 });
 
-// Endpunkt für beide Tage
+// Endpunkt für 4 Schultage
 app.get('/api/both', async (req, res) => {
     try {
         const currentDate = getCorrectDate();
-        const tomorrowDate = new Date(currentDate);
-        tomorrowDate.setDate(tomorrowDate.getDate() + 1);
         
-        // Wenn der nächste Tag ein Wochenende ist, zum nächsten Schultag springen
-        if (isWeekend(tomorrowDate)) {
-            const nextSchoolDay = getNextSchoolDay(tomorrowDate);
-            tomorrowDate.setTime(nextSchoolDay.getTime());
+        // Berechne die nächsten 4 Schultage
+        const dates = [];
+        let currentDateObj = new Date(currentDate);
+        
+        // Stelle sicher, dass wir mit einem Schultag starten
+        if (isWeekend(currentDateObj)) {
+            currentDateObj = getNextSchoolDay(currentDateObj);
         }
         
-        const tomorrowDateStr = tomorrowDate.toISOString().split('T')[0];
+        // Sammle die nächsten 4 Schultage
+        while (dates.length < 4) {
+            dates.push(currentDateObj.toISOString().split('T')[0]);
+            currentDateObj = getNextSchoolDay(currentDateObj);
+        }
 
-        const todayData = await getDataForDate(currentDate);
-        const tomorrowData = await getDataForDate(tomorrowDateStr);
+        // Hole Daten für alle 4 Tage parallel
+        const [day1Data, day2Data, day3Data, day4Data] = await Promise.all([
+            getDataForDate(dates[0]),
+            getDataForDate(dates[1]),
+            getDataForDate(dates[2]),
+            getDataForDate(dates[3])
+        ]);
 
         // Füge das Datum zu jedem Eintrag hinzu
-        const todayEntries = todayData.data.map(entry => ({
+        const day1Entries = day1Data.data.map(entry => ({
             ...entry,
-            datum: currentDate
+            datum: dates[0]
         }));
-        const tomorrowEntries = tomorrowData.data.map(entry => ({
+        const day2Entries = day2Data.data.map(entry => ({
             ...entry,
-            datum: tomorrowDateStr
+            datum: dates[1]
+        }));
+        const day3Entries = day3Data.data.map(entry => ({
+            ...entry,
+            datum: dates[2]
+        }));
+        const day4Entries = day4Data.data.map(entry => ({
+            ...entry,
+            datum: dates[3]
         }));
 
         // Kombiniere die Daten und Kurse
         const combinedData = {
-            data: [...todayEntries, ...tomorrowEntries].filter(item => item.kurs?.trim()),
-            courses: [...new Set([...todayData.courses || [], ...tomorrowData.courses || []].filter(Boolean))]
+            data: [...day1Entries, ...day2Entries, ...day3Entries, ...day4Entries].filter(item => item.kurs?.trim()),
+            courses: [...new Set([
+                ...day1Data.courses || [],
+                ...day2Data.courses || [],
+                ...day3Data.courses || [],
+                ...day4Data.courses || []
+            ].filter(Boolean))]
         };
 
         res.json(combinedData);
     } catch (error) {
-        console.error('Fehler beim Abrufen beider Tage:', error);
-        res.status(500).send('Serverfehler beim Abrufen beider Tage');
+        console.error('Fehler beim Abrufen der 4 Tage:', error);
+        res.status(500).send('Serverfehler beim Abrufen der 4 Tage');
     }
 });
 

@@ -10,7 +10,14 @@
     --table-gradient-start: #ffffff;
     --table-gradient-end: #f8f9fa;
     --border-radius: 8px;
-    --spacing: 12px;
+    --spacing: 8px;
+}
+
+/* Desktop: Größeres Spacing */
+@media screen and (min-width: 769px) {
+    :root {
+        --spacing: 12px;
+    }
 }
 
 * {
@@ -20,42 +27,287 @@
 }
 
 body {
-    font-family: Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
     background-color: var(--background-color);
     margin: 0;
-    padding: var(--spacing);
+    padding: 8px;
     min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Desktop: Größerer Padding */
+@media screen and (min-width: 769px) {
+    body {
+        padding: 12px;
+    }
 }
 
 .container {
     max-width: 1200px;
-    margin: auto;
+    margin: 0 auto;
     background: var(--card-background);
-    padding: var(--spacing);
-    border-radius: var(--border-radius);
-    box-shadow: none;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.04),
+        0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+/* Desktop: Größerer Padding - Perfekte Symmetrie */
+@media screen and (min-width: 769px) {
+    .container {
+        padding: 24px 32px;
+        border-radius: 16px;
+    }
+}
+
+/* Page Header - Marketing-Perfekt - Kompakt */
+.page-header {
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.95) 0%, 
+        rgba(248, 249, 250, 0.98) 50%,
+        rgba(255, 255, 255, 0.95) 100%);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    box-shadow: 
+        0 1px 3px rgba(0, 0, 0, 0.04),
+        0 4px 12px rgba(0, 0, 0, 0.02);
+    position: relative;
+    overflow: hidden;
+}
+
+.page-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, 
+        transparent 0%,
+        rgba(0, 0, 0, 0.06) 50%,
+        transparent 100%);
+}
+
+.header-content {
+    text-align: center;
+    max-width: 100%;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
 }
 
 h1 {
-    text-align: center;
-    color: var(--primary-color);
-    font-size: 1.8rem;
-    margin-bottom: var(--spacing);
-}
-
-h2 {
-    text-align: center;
-    color: var(--primary-color);
-    font-size: 1.4rem;
-    margin-bottom: var(--spacing);
-}
-
-.controls {
     display: flex;
-    gap: var(--spacing);
-    margin-bottom: var(--spacing);
     align-items: center;
     justify-content: center;
+    gap: 10px;
+    color: var(--primary-color);
+    font-size: 1.25rem;
+    margin: 0 0 10px 0;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+}
+
+.header-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    stroke: var(--primary-color);
+    opacity: 0.85;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.05));
+}
+
+.date-display {
+    text-align: center;
+    color: var(--primary-color);
+    font-size: 0.875rem;
+    font-weight: 500;
+    opacity: 0.8;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 8px;
+    display: inline-block;
+    min-height: 32px;
+    line-height: 1.4;
+    box-shadow: 
+        0 1px 2px rgba(0, 0, 0, 0.04),
+        inset 0 1px 1px rgba(255, 255, 255, 0.9);
+    transition: all 0.3s ease;
+    letter-spacing: 0.01em;
+}
+
+.date-display:hover {
+    opacity: 1;
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 1px 1px rgba(255, 255, 255, 0.95);
+}
+
+/* Desktop: Kompakter Header */
+@media screen and (min-width: 769px) {
+    .page-header {
+        padding: 20px 24px;
+        margin-bottom: 24px;
+        border-radius: 12px;
+    }
+    
+    h1 {
+        font-size: 1.5rem;
+        margin-bottom: 12px;
+        gap: 12px;
+        letter-spacing: -0.025em;
+    }
+    
+    .header-icon {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .date-display {
+        font-size: 0.9375rem;
+        padding: 10px 18px;
+        min-height: 36px;
+        border-radius: 8px;
+    }
+}
+
+/* Controls - Perfekte Symmetrie & Balance */
+.controls {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-bottom: 24px;
+    align-items: stretch;
+    max-width: 100%;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.control-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    color: var(--primary-color);
+    font-size: 0.875rem;
+    margin-bottom: 0;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    opacity: 0.75;
+    height: 24px;
+}
+
+.label-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    stroke: var(--primary-color);
+    opacity: 0.65;
+    stroke-width: 2.2;
+}
+
+/* Desktop: Horizontales Layout - Perfekte Balance - Gleiche Höhe */
+@media screen and (min-width: 769px) {
+    .controls {
+        flex-direction: row;
+        gap: 32px;
+        align-items: flex-start;
+        justify-content: center;
+        margin-bottom: 32px;
+    }
+    
+    .control-group {
+        flex: 1;
+        max-width: 420px;
+        min-width: 280px;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* Labels auf gleicher Höhe ausrichten */
+    .control-label {
+        font-size: 0.8125rem;
+        margin-bottom: 0;
+        letter-spacing: 0.05em;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        min-height: 28px;
+        max-height: 28px;
+    }
+    
+    /* Gleicher Abstand zwischen Label und Input für beide Gruppen */
+    .control-group {
+        gap: 8px;
+    }
+    
+    .label-icon {
+        width: 20px;
+        height: 20px;
+    }
+    
+    /* Input-Felder auf gleicher Höhe */
+    .date-controls {
+        display: flex;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .course-selection {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-height: 48px;
+    }
+    
+    /* Gleiche Höhe für alle Input-Elemente */
+    .date-picker-trigger,
+    .action-button,
+    .course-filter {
+        height: 48px !important;
+        min-height: 48px !important;
+        max-height: 48px !important;
+        box-sizing: border-box;
+        line-height: 1.5;
+    }
+    
+    /* Container auf gleicher Höhe */
+    .date-controls,
+    .course-selection {
+        align-items: stretch;
+    }
+    
+    .date-controls .custom-date-picker,
+    .course-selection {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* Sicherstellen, dass alle Elemente in date-controls die gleiche Höhe haben */
+    .date-controls > * {
+        display: flex;
+        align-items: stretch;
+    }
+    
+    .date-controls .custom-date-picker {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .date-controls .date-picker-trigger {
+        flex: 1;
+    }
 }
 
 .button-group {
@@ -63,40 +315,577 @@ h2 {
     gap: var(--spacing);
 }
 
-button {
-    background: var(--button-background);
-    border: none;
-    color: black;
-    padding: 12px 24px;
-    text-align: center;
-    text-decoration: none;
-    font-size: 1rem;
-    cursor: pointer;
-    border-radius: var(--border-radius);
-    transition: background-color 0.3s;
+.date-controls {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+    flex-wrap: wrap;
+    width: 100%;
+    min-height: 48px;
+}
+
+.date-controls > * {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Perfekte Symmetrie für Date Controls */
+.date-controls .custom-date-picker {
+    flex: 1.5;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+}
+
+.date-controls .action-button {
+    flex: 1;
     min-width: 120px;
 }
 
-button:hover {
+.action-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--primary-color);
+    padding: 14px 18px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 48px;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+    white-space: nowrap;
+    box-shadow: 
+        0 1px 2px rgba(0, 0, 0, 0.04),
+        inset 0 1px 1px rgba(255, 255, 255, 0.9);
+    letter-spacing: 0.01em;
+}
+
+.action-button:hover {
+    background: rgba(255, 255, 255, 1);
+    border-color: rgba(0, 0, 0, 0.12);
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 1px 1px rgba(255, 255, 255, 1);
+    transform: translateY(-1px);
+}
+
+.action-button:active {
+    transform: translateY(0);
+    box-shadow: 
+        0 1px 2px rgba(0, 0, 0, 0.04),
+        inset 0 1px 1px rgba(255, 255, 255, 0.9);
+}
+
+.action-button.active {
+    background: var(--button-hover);
+    border-color: rgba(0, 0, 0, 0.15);
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.12),
+        0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.button-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    stroke: currentColor;
+    stroke-width: 2.2;
+}
+
+/* Desktop: Kompakteres Layout - Perfekte Symmetrie */
+@media screen and (min-width: 769px) {
+    .date-controls {
+        flex-wrap: nowrap;
+        gap: 12px;
+    }
+    
+    .date-controls .custom-date-picker {
+        flex: 1.5;
+        min-width: 220px;
+    }
+    
+    .date-controls .action-button {
+        padding: 13px 22px;
+        min-height: auto;
+        flex: 1;
+        min-width: 140px;
+    }
+    
+    .date-picker-trigger {
+        min-width: 220px;
+    }
+}
+
+/* Custom Date Picker */
+.custom-date-picker {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    order: 1;
+}
+
+/* Desktop: Auto-Breite */
+@media screen and (min-width: 769px) {
+    .custom-date-picker {
+        width: auto;
+        order: 0;
+    }
+}
+
+.date-picker-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--primary-color);
+    padding: 13px 18px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100%;
+    height: 48px;
+    min-height: 48px;
+    max-height: 48px;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 
+        0 1px 2px rgba(0, 0, 0, 0.04),
+        inset 0 1px 1px rgba(255, 255, 255, 0.9);
+    letter-spacing: 0.01em;
+    line-height: 1.5;
+    box-sizing: border-box;
+}
+
+/* Desktop: Feste Breite */
+@media screen and (min-width: 769px) {
+    .date-picker-trigger {
+        width: auto;
+        min-width: 200px;
+        padding: 13px 20px;
+        height: 48px;
+        min-height: 48px;
+        max-height: 48px;
+    }
+}
+
+.date-picker-trigger:hover {
+    background: rgba(255, 255, 255, 1);
+    border-color: rgba(0, 0, 0, 0.12);
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 1px 1px rgba(255, 255, 255, 1);
+    transform: translateY(-1px);
+}
+
+.date-picker-trigger:active {
+    transform: translateY(0);
+    box-shadow: 
+        0 1px 2px rgba(0, 0, 0, 0.04),
+        inset 0 1px 1px rgba(255, 255, 255, 0.9);
+}
+
+.date-picker-trigger.active {
+    background: var(--button-hover);
+    border-color: rgba(0, 0, 0, 0.15);
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.12),
+        0 1px 2px rgba(0, 0, 0, 0.08);
+    font-weight: 600;
+}
+
+.date-picker-trigger .calendar-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.date-picker-dropdown {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 14px;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: calc(100% - 24px);
+    max-width: 340px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* Desktop: Absolute Position */
+@media screen and (min-width: 769px) {
+    .date-picker-dropdown {
+        position: absolute;
+        top: calc(100% + 8px);
+        transform: translateX(-50%) scale(0.95);
+        padding: 16px;
+        width: auto;
+        min-width: 300px;
+        max-width: none;
+        max-height: none;
+        overflow-y: visible;
+    }
+}
+
+.date-picker-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* Desktop: Korrekte Transform */
+@media screen and (min-width: 769px) {
+    .date-picker-dropdown.active {
+        transform: translateX(-50%) scale(1);
+    }
+}
+
+.date-picker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.date-picker-header .current-month {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    letter-spacing: 0.3px;
+    flex: 1;
+    text-align: center;
+}
+
+.date-picker-header .nav-btn {
+    width: 44px;
+    height: 44px;
+    border: none;
+    background: var(--button-background);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    padding: 0;
+    min-width: unset;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Desktop: Kleinere Buttons */
+@media screen and (min-width: 769px) {
+    .date-picker-header {
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+    }
+    
+    .date-picker-header .current-month {
+        font-size: 1rem;
+    }
+    
+    .date-picker-header .nav-btn {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+.date-picker-header .nav-btn:hover {
     background: var(--button-hover);
 }
 
-button.active {
-    background-color: var(--button-hover);
-    font-weight: bold;
+.date-picker-header .nav-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.date-picker-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    margin-bottom: 8px;
+}
+
+.date-picker-weekdays span {
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #888;
+    padding: 6px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Desktop: Größerer Text */
+@media screen and (min-width: 769px) {
+    .date-picker-weekdays {
+        gap: 4px;
+        margin-bottom: 10px;
+    }
+    
+    .date-picker-weekdays span {
+        font-size: 0.75rem;
+        padding: 8px 0;
+        letter-spacing: 1px;
+    }
+}
+
+.date-picker-weekdays .weekend {
+    color: #ccc;
+}
+
+.date-picker-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    justify-items: center;
+}
+
+.date-picker-days .day {
+    width: 42px;
+    height: 42px;
+    border: none;
+    background: transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #333;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    min-width: unset;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Desktop: Kleinere Buttons */
+@media screen and (min-width: 769px) {
+    .date-picker-days {
+        gap: 4px;
+        justify-items: stretch;
+    }
+    
+    .date-picker-days .day {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+.date-picker-days .day:hover:not(.disabled):not(.weekend) {
+    background: var(--button-hover);
+    color: var(--primary-color);
+}
+
+.date-picker-days .day.today {
+    background: var(--header-background);
+    font-weight: 700;
+    position: relative;
+}
+
+.date-picker-days .day.today::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    background: var(--primary-color);
+    border-radius: 50%;
+}
+
+.date-picker-days .day.selected {
+    background: var(--primary-color);
+    color: white;
+    font-weight: 600;
+}
+
+.date-picker-days .day.other-month {
+    color: #ccc;
+}
+
+.date-picker-days .day.weekend {
+    color: #bbb;
+    cursor: not-allowed;
+}
+
+.date-picker-days .day.weekend:hover {
+    background: transparent;
+    transform: none;
+    color: #bbb;
+}
+
+.date-picker-days .day.disabled {
+    color: #ddd;
+    cursor: not-allowed;
+}
+
+.date-picker-footer {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: center;
+}
+
+.date-picker-footer .today-btn {
+    background: transparent;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 10px 20px;
+    border-radius: var(--border-radius);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: unset;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Desktop: Kleinere Buttons */
+@media screen and (min-width: 769px) {
+    .date-picker-footer {
+        margin-top: 12px;
+        padding-top: 12px;
+    }
+    
+    .date-picker-footer .today-btn {
+        padding: 8px 20px;
+        min-height: auto;
+    }
+}
+
+.date-picker-footer .today-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.action-button.active {
+    background: var(--button-hover);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.course-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.course-filter {
+    width: 100%;
+    padding: 13px 18px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: var(--primary-color);
+    font-size: 1rem;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 48px;
+    min-height: 48px;
+    max-height: 48px;
+    -webkit-tap-highlight-color: transparent;
+    appearance: none;
+    padding-right: 44px;
+    box-shadow: 
+        0 1px 2px rgba(0, 0, 0, 0.04),
+        inset 0 1px 1px rgba(255, 255, 255, 0.9);
+    letter-spacing: 0.01em;
+    line-height: 1.5;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.course-filter::after {
+    content: '';
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath fill='%23333' d='M7 10L2 5h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+    pointer-events: none;
+    opacity: 1;
+    transform: translateY(-50%) rotate(0deg);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+}
+
+.course-filter:focus::after,
+.course-filter.open::after {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.course-filter:hover {
+    border-color: rgba(0, 0, 0, 0.12);
+    background-color: rgba(255, 255, 255, 1);
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 1px 1px rgba(255, 255, 255, 1);
+    transform: translateY(-1px);
+}
+
+.course-filter:focus {
+    outline: none;
+    border-color: rgba(0, 0, 0, 0.15);
+    background-color: rgba(255, 255, 255, 1);
+    box-shadow: 
+        0 0 0 3px rgba(0, 0, 0, 0.08),
+        0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.course-filter:active {
+    transform: translateY(0);
+}
+
+/* Desktop: Standard Button-Größen */
+@media screen and (min-width: 769px) {
+    .course-filter {
+        padding: 13px 44px 13px 20px;
+        height: 48px;
+        min-height: 48px;
+        max-height: 48px;
+    }
 }
 
 select {
     background: var(--button-background);
     color: black;
-    padding: 12px;
+    padding: 14px 40px 14px 14px;
     border: none;
     border-radius: var(--border-radius);
     font-size: 1rem;
     cursor: pointer;
     transition: background-color 0.3s;
-    min-width: 200px;
-    max-width: 300px;
+    width: 100%;
+    min-height: 48px;
+    font-family: inherit;
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -104,6 +893,18 @@ select {
     background-repeat: no-repeat;
     background-position: right 12px center;
     background-size: 20px;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Desktop: Feste Breite */
+@media screen and (min-width: 769px) {
+    select {
+        width: auto;
+        min-width: 200px;
+        max-width: 300px;
+        padding: 12px 40px 12px 12px;
+        min-height: auto;
+    }
 }
 
 select:hover {
@@ -114,37 +915,69 @@ select:hover {
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    margin-top: var(--spacing);
+    margin-top: 12px;
     background: var(--card-background);
     border-radius: var(--border-radius);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+/* Visueller Scroll-Indikator für Mobile */
+.table-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 30px;
+    background: linear-gradient(to left, rgba(244, 244, 244, 0.9), transparent);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Desktop: Kein Scroll-Indikator */
+@media screen and (min-width: 769px) {
+    .table-container::before {
+        display: none;
+    }
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 600px;
+    min-width: 700px;
     background: linear-gradient(to bottom, 
         var(--table-gradient-start) 0%,
         var(--table-gradient-end) 100%);
-    table-layout: fixed;
+    table-layout: auto;
 }
 
 th, td {
-    padding: 12px;
+    padding: 10px 8px;
     text-align: left;
     border-bottom: 1px solid #ddd;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     background: transparent;
-    transition: background-color 0.15s ease;
+}
+
+/* Desktop: Größere Schrift und Padding */
+@media screen and (min-width: 769px) {
+    table {
+        table-layout: fixed;
+    }
+    
+    th, td {
+        padding: 12px;
+        font-size: 0.9rem;
+    }
 }
 
 th {
     background: var(--header-background);
-    font-weight: bold;
+    font-weight: 600;
     position: sticky;
     top: 0;
     z-index: 2;
@@ -152,6 +985,14 @@ th {
     cursor: pointer;
     user-select: none;
     transition: background-color 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Desktop: Fettere Schrift */
+@media screen and (min-width: 769px) {
+    th {
+        font-weight: bold;
+    }
 }
 
 th:hover {
@@ -168,16 +1009,30 @@ th.sorted-desc::after {
     font-size: 0.8em;
 }
 
-/* Spaltenbreiten */
-th:nth-child(1), td:nth-child(1) { width: 15%; } /* Kurs */
-th:nth-child(2), td:nth-child(2) { width: 12%; } /* Tag */
-th:nth-child(3), td:nth-child(3) { width: 8%; }  /* Stunde */
-th:nth-child(4), td:nth-child(4) { width: 15%; } /* Raum */
-th:nth-child(5), td:nth-child(5) { width: 15%; } /* Lehrer */
-th:nth-child(6), td:nth-child(6) { width: 15%; } /* Typ */
-th:nth-child(7), td:nth-child(7) { width: 20%; } /* Notizen */
+/* Spaltenbreiten - Mobile First (flexible) */
+th:nth-child(1), td:nth-child(1) { min-width: 100px; } /* Kurs */
+th:nth-child(2), td:nth-child(2) { min-width: 90px; }  /* Tag */
+th:nth-child(3), td:nth-child(3) { min-width: 65px; }  /* Stunde */
+th:nth-child(4), td:nth-child(4) { min-width: 90px; }  /* Raum */
+th:nth-child(5), td:nth-child(5) { min-width: 90px; }  /* Lehrer */
+th:nth-child(6), td:nth-child(6) { min-width: 90px; }  /* Typ */
+th:nth-child(7), td:nth-child(7) { min-width: 120px; } /* Notizen */
 
-/* Datumsspalte - keine spezielle Transition, wird von td übernommen */
+/* Desktop: Feste Breiten */
+@media screen and (min-width: 769px) {
+    th:nth-child(1), td:nth-child(1) { width: 15%; min-width: auto; } /* Kurs */
+    th:nth-child(2), td:nth-child(2) { width: 12%; min-width: auto; } /* Tag */
+    th:nth-child(3), td:nth-child(3) { width: 8%; min-width: auto; }  /* Stunde */
+    th:nth-child(4), td:nth-child(4) { width: 15%; min-width: auto; } /* Raum */
+    th:nth-child(5), td:nth-child(5) { width: 15%; min-width: auto; } /* Lehrer */
+    th:nth-child(6), td:nth-child(6) { width: 15%; min-width: auto; } /* Typ */
+    th:nth-child(7), td:nth-child(7) { width: 20%; min-width: auto; } /* Notizen */
+}
+
+/* Datumsspalte */
+.date-column {
+    transition: all 0.3s ease;
+}
 
 /* Wenn die Datumsspalte ausgeblendet ist, passe die anderen Spaltenbreiten an */
 .date-column[style*="display: none"] ~ td:nth-child(1) { width: 15%; }
@@ -208,307 +1063,149 @@ tr:hover td {
     background: var(--table-row-hover);
 }
 
-/* Mobile Optimierungen */
-@media screen and (max-width: 768px) {
-    :root {
-        --spacing: 8px;
-    }
-
-    body {
-        padding: 8px;
-    }
-
-    .container {
-        padding: 12px;
-        margin: 0;
-        border-radius: var(--border-radius);
-    }
-
+/* Tablet-spezifische Anpassungen */
+@media screen and (min-width: 481px) and (max-width: 768px) {
     h1 {
-        font-size: 1.5rem;
+        font-size: 1.6rem;
     }
 
     h2 {
-        font-size: 1.2rem;
+        font-size: 1.25rem;
     }
-
-    .controls {
-        flex-direction: column;
-    }
-
-    .button-group {
-        width: 100%;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    button {
-        flex: 1;
-        min-width: unset;
-        padding: 12px 8px;
-        font-size: 0.9rem;
-    }
-
-    select {
-        width: 100%;
-        max-width: unset;
-    }
-
+    
     th, td {
-        padding: 8px;
-        font-size: 0.85rem;
-    }
-
-    /* Horizontales Scrollen mit visuellem Indikator */
-    .table-container {
-        position: relative;
-    }
-
-    .table-container::after {
-        display: none;
-    }
-
-    /* Verbesserte Touch-Interaktion */
-    button, select {
-        min-height: 44px;
-    }
-
-    .date-column {
-        min-width: 100px;
+        padding: 10px;
+        font-size: 0.875rem;
     }
 }
 
-/* Landscape-Modus Optimierungen */
+/* Landscape-Modus Optimierungen für Mobile */
 @media screen and (max-width: 768px) and (orientation: landscape) {
     .controls {
         flex-direction: row;
+        flex-wrap: wrap;
     }
 
-    .button-group {
-        width: auto;
+    .date-selection {
+        flex: 1 1 auto;
+        min-width: 250px;
     }
 
     select {
-        width: auto;
-        min-width: 200px;
+        flex: 1 1 auto;
+        min-width: 180px;
+    }
+    
+    h1 {
+        font-size: 1.3rem;
+        margin-bottom: 8px;
+    }
+    
+    h2 {
+        font-size: 1rem;
+        margin-bottom: 8px;
     }
 }
 
-/* Footer Styles */
+/* Footer Styles - Mobile First */
 .footer {
     margin-top: 32px;
-    padding: 24px 0 20px;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    padding-top: 24px;
+    border-top: 2px solid rgba(0, 0, 0, 0.08);
+}
+
+.footer-credits {
+    text-align: center;
+    color: var(--primary-color);
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+    opacity: 0.85;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.footer-credits a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
     position: relative;
 }
 
-.footer::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60px;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.1), transparent);
+.footer-credits a:hover,
+.footer-credits a:active {
+    opacity: 1;
+    text-decoration: underline;
 }
 
 .footer-links {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
+    gap: 10px;
 }
 
-.footer-links a {
+.footer-link {
     color: var(--primary-color);
     text-decoration: none;
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: 0.9rem;
     opacity: 0.75;
-    padding: 8px 16px;
-    display: inline-flex;
+    transition: all 0.3s ease;
+    padding: 10px 16px;
+    min-height: 44px;
+    display: flex;
     align-items: center;
-    justify-content: center;
-    border-radius: 6px;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    min-height: 36px;
+    gap: 8px;
+    -webkit-tap-highlight-color: transparent;
+    border-radius: 8px;
+    background: transparent;
 }
 
-.footer-links a::before {
-    content: '';
-    position: absolute;
-    bottom: 6px;
-    left: 50%;
-    transform: translateX(-50%) scaleX(0);
-    width: calc(100% - 32px);
-    height: 2px;
-    background: currentColor;
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    opacity: 0.6;
-}
-
-.footer-links a:hover {
+.footer-link:hover,
+.footer-link:active {
     opacity: 1;
-    background-color: rgba(0, 0, 0, 0.04);
+    background: rgba(0, 0, 0, 0.03);
     transform: translateY(-1px);
 }
 
-.footer-links a:hover::before {
-    transform: translateX(-50%) scaleX(1);
+.footer-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    stroke: currentColor;
 }
 
-.footer-links a:active {
-    transform: translateY(0);
-    background-color: rgba(0, 0, 0, 0.08);
-}
-
-.footer-credit {
-    margin-top: 20px;
-    padding-top: 20px;
-    text-align: center;
-    font-size: 0.8125rem;
-    color: var(--primary-color);
-    opacity: 0.65;
-    line-height: 1.6;
-    position: relative;
-}
-
-.footer-credit::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 40px;
-    height: 1px;
-    background: rgba(0, 0, 0, 0.1);
-}
-
-.footer-credit a {
-    color: var(--primary-color);
-    text-decoration: none;
+.footer-link span {
     font-weight: 500;
-    opacity: 0.85;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    display: inline-block;
-    padding: 2px 4px;
-    margin: 0 2px;
-    border-radius: 4px;
 }
 
-.footer-credit a::after {
-    content: '';
-    position: absolute;
-    bottom: 2px;
-    left: 4px;
-    right: 4px;
-    height: 1.5px;
-    background: currentColor;
-    transform: scaleX(0);
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    opacity: 0.6;
-}
-
-.footer-credit a:hover {
-    opacity: 1;
-    background-color: rgba(0, 0, 0, 0.04);
-}
-
-.footer-credit a:hover::after {
-    transform: scaleX(1);
-}
-
-/* Mobile Footer Optimierungen - Top Designer Level */
-@media screen and (max-width: 768px) {
+/* Desktop: Horizontales Layout */
+@media screen and (min-width: 769px) {
     .footer {
-        margin-top: 24px;
-        padding: 20px 0 16px;
+        margin-top: 40px;
+        padding-top: 32px;
     }
-
-    .footer::before {
-        width: 40px;
-    }
-
-    .footer-links {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
+    
+    .footer-credits {
+        font-size: 0.9rem;
         margin-bottom: 24px;
-        padding: 0 4px;
     }
-
-    .footer-links a {
-        font-size: 0.875rem;
-        padding: 14px 16px;
-        min-height: 48px;
-        width: 100%;
-        max-width: none;
-        border-radius: 8px;
-        font-weight: 500;
-        background-color: rgba(0, 0, 0, 0.02);
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-    }
-
-    .footer-links a::before {
-        display: none;
-    }
-
-    .footer-links a:hover {
-        background-color: rgba(0, 0, 0, 0.06);
-        transform: translateY(-2px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-    }
-
-    .footer-links a:active {
-        transform: translateY(0);
-        background-color: rgba(0, 0, 0, 0.1);
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-    }
-
-    .footer-credit {
-        margin-top: 16px;
-        padding-top: 16px;
-        font-size: 0.75rem;
-        padding: 16px 12px 0;
-        line-height: 1.7;
-    }
-
-    .footer-credit::before {
-        width: 30px;
-    }
-
-    .footer-credit a {
-        padding: 4px 6px;
-        margin: 0 1px;
-        min-height: 32px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .footer-credit a:hover {
-        background-color: rgba(0, 0, 0, 0.06);
-    }
-}
-
-/* Extra kleine Bildschirme */
-@media screen and (max-width: 480px) {
+    
     .footer-links {
+        flex-direction: row;
+        justify-content: center;
         gap: 8px;
+        flex-wrap: wrap;
     }
-
-    .footer-links a {
-        padding: 12px 14px;
-        font-size: 0.8125rem;
+    
+    .footer-link {
+        font-size: 0.9rem;
+        padding: 8px 16px;
+        min-height: auto;
     }
-
-    .footer-credit {
-        font-size: 0.6875rem;
-        padding: 14px 8px 0;
+    
+    .footer-link:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 }
