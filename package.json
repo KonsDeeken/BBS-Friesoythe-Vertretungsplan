@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Dark-Studios-UG/BBS-Friesoythe-Vertretungsplan.git"
+    "url": "git+https://github.com/KonsDeeken/BBS-Friesoythe-Vertretungsplan.git"
   },
   "keywords": [
     "vertretungsplan",
@@ -21,7 +21,7 @@
   ],
   "author": "Dark Studios UG",
   "bugs": {
-    "url": "https://github.com/Dark-Studios-UG/BBS-Friesoythe-Vertretungsplan/issues"
+    "url": "https://github.com/KonsDeeken/BBS-Friesoythe-Vertretungsplan/issues"
   },
   "homepage": "https://bbsvertretung.darkstudios.de",
   "dependencies": {
