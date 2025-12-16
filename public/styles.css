@@ -920,7 +920,6 @@ select:hover {
     border-radius: var(--border-radius);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     position: relative;
-    min-height: 200px;
 }
 
 .loading-indicator {
@@ -943,6 +942,11 @@ select:hover {
     pointer-events: all;
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
+}
+
+/* Mindesthöhe nur wenn Loading-Indikator sichtbar ist */
+.table-container:has(.loading-indicator.visible) {
+    min-height: 200px;
 }
 
 .loading-indicator__content {
