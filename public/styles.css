@@ -961,6 +961,7 @@ th, td {
     text-overflow: ellipsis;
     white-space: nowrap;
     background: transparent;
+    transition: background-color 0.1s ease;
 }
 
 /* Desktop: Größere Schrift und Padding */
@@ -1031,7 +1032,7 @@ th:nth-child(7), td:nth-child(7) { min-width: 120px; } /* Notizen */
 
 /* Datumsspalte */
 .date-column {
-    transition: all 0.3s ease;
+    transition: background-color 0.1s ease;
 }
 
 /* Wenn die Datumsspalte ausgeblendet ist, passe die anderen Spaltenbreiten an */
