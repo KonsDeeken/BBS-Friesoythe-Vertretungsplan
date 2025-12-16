@@ -26,7 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedDateText: document.getElementById('selectedDateText'),
         bothDaysButton: document.getElementById('bothDaysButton'),
         courseFilter: document.getElementById('courseFilter'),
-        dataBody: document.getElementById('data-body')
+        dataBody: document.getElementById('data-body'),
+        loadingIndicator: document.getElementById('loadingIndicator')
     };
 
     // Custom Date Picker initialisieren
@@ -581,6 +582,20 @@ class UIManager {
             </tr>
         `;
     }
+
+    static showLoadingIndicator() {
+        if (DOM.loadingIndicator) {
+            DOM.loadingIndicator.classList.add('visible');
+            DOM.loadingIndicator.setAttribute('aria-hidden', 'false');
+        }
+    }
+
+    static hideLoadingIndicator() {
+        if (DOM.loadingIndicator) {
+            DOM.loadingIndicator.classList.remove('visible');
+            DOM.loadingIndicator.setAttribute('aria-hidden', 'true');
+        }
+    }
 }
 
 // Storage-Management
@@ -748,6 +763,7 @@ class EventHandler {
     
     static async loadSingleDate(date, initialCourse = null) {
         try {
+            UIManager.showLoadingIndicator();
             UIManager.updateDatePicker(date);
             UIManager.setBothDaysButtonActive(false);
             UIManager.setDatePickerActive(true);
@@ -774,11 +790,14 @@ class EventHandler {
         } catch (error) {
             console.error('Fehler beim Laden der Daten:', error);
             UIManager.showMessage('Fehler beim Laden der Daten');
+        } finally {
+            UIManager.hideLoadingIndicator();
         }
     }
 
     static async loadBothDays(initialCourse = null) {
         try {
+            UIManager.showLoadingIndicator();
             const defaultDates = DateManager.getDefaultDates();
             const dates = defaultDates.dates; // Array von 4 Datumsstrings
 
@@ -816,6 +835,8 @@ class EventHandler {
         } catch (error) {
             console.error('Fehler beim Laden der Daten:', error);
             UIManager.showMessage('Fehler beim Laden der Daten');
+        } finally {
+            UIManager.hideLoadingIndicator();
         }
     }
 
