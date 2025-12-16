@@ -1,8 +1,7 @@
 // Konstanten
 const API = {
     DATE: '/api/date',
-    BOTH: '/api/both',
-    BOTH_DATES: '/api/both' // Für zwei spezifische Daten
+    DAYS: '/api/days' // Für 4 Schultage
 };
 
 const STORAGE_KEYS = {
@@ -389,22 +388,13 @@ class DataManager {
 
     static async fetchDataForDate(date) {
         try {
-            // Hole die Daten aus /api/both (4 Tage JSON) und filtere nach dem gewählten Datum
-            const response = await fetch(API.BOTH);
+            // Nutze den neuen Endpunkt für einzelnes Datum
+            const response = await fetch(`${API.DATE}/${date}`);
             if (!response.ok) throw new Error('Netzwerkantwort war nicht ok');
             
             const data = await response.json();
-            const allData = (data.data || []).filter(item => item.kurs?.trim());
-            
-            // Filtere die Daten nach dem gewählten Datum
-            // Die JSON ist nach Tag sortiert, das datum Feld ist bereits im Format YYYY-MM-DD
-            const filteredData = allData.filter(item => {
-                // Direkter String-Vergleich, da datum bereits im Format YYYY-MM-DD ist
-                return item.datum === date;
-            });
-            
-            // Sammle alle eindeutigen Kurse aus den gefilterten Daten
-            const courses = [...new Set(filteredData.map(item => item.kurs).filter(Boolean))].sort();
+            const filteredData = (data.data || []).filter(item => item.kurs?.trim());
+            const courses = [...new Set((data.courses || []).filter(Boolean))].sort();
             
             return {
                 data: filteredData,
@@ -418,10 +408,9 @@ class DataManager {
 
     static async fetchDataForMultipleDates(dates) {
         try {
-            // Wenn es die Standard-Daten sind (4 Schultage), verwende /api/both
-            // Sonst verwende /api/both/:dates mit komma-separierten Daten
-            const datesParam = dates.join(',');
-            const response = await fetch(`${API.BOTH}/${datesParam}`);
+            // Für 4 Schultage verwende /api/days (lädt alle 4 Tage auf einmal)
+            // Dies ist effizienter als 4 separate Requests
+            const response = await fetch(API.DAYS);
             if (!response.ok) throw new Error('Netzwerkantwort war nicht ok');
             
             const data = await response.json();
@@ -799,7 +788,7 @@ class EventHandler {
             UIManager.updateDateDisplay('both', dates);
 
             // Fetch data - verwende Standard-Endpunkt für 4 Schultage
-            const response = await fetch(API.BOTH);
+            const response = await fetch(API.DAYS);
             if (!response.ok) throw new Error('Netzwerkantwort war nicht ok');
             const data = await response.json();
             

@@ -125,7 +125,8 @@ Die Anwendung stellt folgende REST-API-Endpunkte zur Verfügung:
 
 - **`GET /api/data`** - Vertretungsdaten für heute (berücksichtigt 17:00 Uhr Regel)
 - **`GET /api/morgen`** - Vertretungsdaten für morgen (überspringt Wochenenden automatisch)
-- **`GET /api/both`** - Vertretungsdaten für die nächsten 4 Schultage kombiniert
+- **`GET /api/date/:date`** - Vertretungsdaten für ein spezifisches Datum (Format: YYYY-MM-DD)
+- **`GET /api/days`** - Vertretungsdaten für die nächsten 4 Schultage kombiniert
 
 ### Antwortformat
 
@@ -139,7 +140,7 @@ Die Anwendung stellt folgende REST-API-Endpunkte zur Verfügung:
       "lehrer": "MEYI (IMBUA)",
       "typ": "Vertretung",
       "notizen": "",
-      "datum": "2025-12-12" // Nur bei /api/both, Format: YYYY-MM-DD
+      "datum": "2025-12-12" // Nur bei /api/days, Format: YYYY-MM-DD
     }
   ],
   "courses": ["BES2G1", "BFGS2", "BFGS3", ...]
@@ -154,7 +155,7 @@ Die Anwendung stellt folgende REST-API-Endpunkte zur Verfügung:
 - **`lehrer`**: Lehrerbezeichnung (kann Vertretungen wie "MEYI (IMBUA)" enthalten)
 - **`typ`**: Typ der Änderung (z.B. "Entfall", "Raumänderung", "Verlegung", leer für normale Vertretung)
 - **`notizen`**: Zusätzliche Notizen oder Informationen
-- **`datum`**: Datum im Format YYYY-MM-DD (nur bei `/api/both` vorhanden)
+- **`datum`**: Datum im Format YYYY-MM-DD (nur bei `/api/days` vorhanden)
 
 ## Automatische Updates
 

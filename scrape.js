@@ -17,6 +17,10 @@ const URLS = {
     DAY_AFTER_DAY_AFTER_TOMORROW: 'https://bbs-friesoythe.webuntis.com/WebUntis/monitor?school=bbs-friesoythe&monitorType=subst&format=Vertretung%203T%20vor'
 };
 
+// Lock-Mechanismus für Scraping-Prozesse
+let isScraping = false;
+let scrapingPromise = null;
+
 // Express App Setup
 const app = express();
 app.use(cors());
@@ -439,103 +443,182 @@ const cleanupOldTempFiles = () => {
 
 /**
  * Speichert die temporären Vertretungsdaten für 4 Tage
+ * Verwendet Lock-Mechanismus, um parallele Scraping-Prozesse zu verhindern
  */
 const saveTemporaryData = async () => {
-    try {
-        const { dataToday, dataTomorrow, dataDayAfterTomorrow, dataDayAfterDayAfterTomorrow } = await scrapeData();
-        const currentDateStr = getCorrectDate();
-        
-        // Parse das Datum (Format: YYYY-MM-DD)
-        const [year, month, day] = currentDateStr.split('-').map(Number);
-        let currentDateObj = new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0));
-        
-        // Berechne die nächsten 4 Schultage
-        const dates = [];
-        
-        // Stelle sicher, dass wir mit einem Schultag starten
-        if (isWeekend(currentDateObj)) {
-            currentDateObj = getNextSchoolDay(currentDateObj);
+    // Wenn bereits ein Scraping läuft, warte auf das bestehende Promise
+    if (isScraping && scrapingPromise) {
+        console.log('Scraping läuft bereits, warte auf bestehenden Prozess...');
+        try {
+            await scrapingPromise;
+            return; // Das bestehende Scraping hat die Daten bereits gespeichert
+        } catch (error) {
+            console.error('Fehler beim Warten auf bestehenden Scraping-Prozess:', error);
+            // Falls der bestehende Prozess fehlgeschlagen ist, starte einen neuen
         }
-        
-        // Sammle die nächsten 4 Schultage
-        while (dates.length < 4) {
-            dates.push(currentDateObj.toISOString().split('T')[0]);
-            currentDateObj = getNextSchoolDay(currentDateObj);
-        }
-        
-        // Lösche alte temporäre Dateien
-        cleanupOldTempFiles();
-        
-        // Speichere Daten mit Kurs-Liste
-        const saveData = (data, date) => {
-            fs.writeFileSync(
-                path.join(dataDir, `temp_${date}.json`),
-                JSON.stringify({
-                    data,
-                    courses: [...new Set(data.map(item => item.kurs))]
-                })
-            );
-        };
+    }
 
-        // Speichere alle 4 Tage
-        saveData(dataToday, dates[0]);
-        saveData(dataTomorrow, dates[1]);
-        saveData(dataDayAfterTomorrow, dates[2]);
-        saveData(dataDayAfterDayAfterTomorrow, dates[3]);
-        
-        console.log(`Saved data for 4 days: ${dates.join(', ')}`);
-    } catch (error) {
-        console.error('Fehler beim Speichern der temporären Daten:', error);
+    // Setze Lock und starte Scraping
+    isScraping = true;
+    scrapingPromise = (async () => {
+        try {
+            const { dataToday, dataTomorrow, dataDayAfterTomorrow, dataDayAfterDayAfterTomorrow } = await scrapeData();
+            const currentDateStr = getCorrectDate();
+            
+            // Parse das Datum (Format: YYYY-MM-DD)
+            const [year, month, day] = currentDateStr.split('-').map(Number);
+            let currentDateObj = new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0));
+            
+            // Berechne die nächsten 4 Schultage
+            const dates = [];
+            
+            // Stelle sicher, dass wir mit einem Schultag starten
+            if (isWeekend(currentDateObj)) {
+                currentDateObj = getNextSchoolDay(currentDateObj);
+            }
+            
+            // Sammle die nächsten 4 Schultage
+            while (dates.length < 4) {
+                dates.push(currentDateObj.toISOString().split('T')[0]);
+                currentDateObj = getNextSchoolDay(currentDateObj);
+            }
+            
+            // Lösche alte temporäre Dateien
+            cleanupOldTempFiles();
+            
+            // Speichere Daten mit Kurs-Liste
+            const saveData = (data, date) => {
+                fs.writeFileSync(
+                    path.join(dataDir, `temp_${date}.json`),
+                    JSON.stringify({
+                        data,
+                        courses: [...new Set(data.map(item => item.kurs))]
+                    })
+                );
+            };
+
+            // Speichere alle 4 Tage
+            saveData(dataToday, dates[0]);
+            saveData(dataTomorrow, dates[1]);
+            saveData(dataDayAfterTomorrow, dates[2]);
+            saveData(dataDayAfterDayAfterTomorrow, dates[3]);
+            
+            console.log(`Saved data for 4 days: ${dates.join(', ')}`);
+        } catch (error) {
+            console.error('Fehler beim Speichern der temporären Daten:', error);
+            throw error; // Weiterwerfen, damit wartende Promises den Fehler sehen
+        }
+    })();
+
+    try {
+        await scrapingPromise;
+    } finally {
+        // Lock immer zurücksetzen, auch bei Fehlern
+        isScraping = false;
+        scrapingPromise = null;
     }
 };
 
 /**
  * Erstellt ein tägliches Backup der Vertretungsdaten für 4 Tage
+ * Verwendet Lock-Mechanismus, um parallele Scraping-Prozesse zu verhindern
  */
 const createDailyBackup = async () => {
-    try {
-        console.log("Creating daily backup for 4 days...");
-        const { dataToday, dataTomorrow, dataDayAfterTomorrow, dataDayAfterDayAfterTomorrow } = await scrapeData();
-        const currentDateStr = getCorrectDate();
-        
-        // Parse das Datum (Format: YYYY-MM-DD)
-        const [year, month, day] = currentDateStr.split('-').map(Number);
-        let currentDateObj = new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0));
-        
-        // Berechne die nächsten 4 Schultage
-        const dates = [];
-        
-        // Stelle sicher, dass wir mit einem Schultag starten
-        if (isWeekend(currentDateObj)) {
-            currentDateObj = getNextSchoolDay(currentDateObj);
+    // Wenn bereits ein Scraping läuft, warte auf das bestehende Promise
+    if (isScraping && scrapingPromise) {
+        console.log('Scraping läuft bereits für Backup, warte auf bestehenden Prozess...');
+        try {
+            await scrapingPromise;
+            // Nach dem Warten die Backup-Dateien erstellen (Daten wurden bereits gescraped)
+            const currentDateStr = getCorrectDate();
+            const [year, month, day] = currentDateStr.split('-').map(Number);
+            let currentDateObj = new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0));
+            
+            if (isWeekend(currentDateObj)) {
+                currentDateObj = getNextSchoolDay(currentDateObj);
+            }
+            
+            const dates = [];
+            while (dates.length < 4) {
+                dates.push(currentDateObj.toISOString().split('T')[0]);
+                currentDateObj = getNextSchoolDay(currentDateObj);
+            }
+            
+            // Lese die bereits gespeicherten temp-Dateien und erstelle Backups
+            const createBackup = (date) => {
+                const tempFile = path.join(dataDir, `temp_${date}.json`);
+                const backupFile = path.join(dataDir, `data_${date}.json`);
+                if (fs.existsSync(tempFile)) {
+                    const data = JSON.parse(fs.readFileSync(tempFile, 'utf8'));
+                    fs.writeFileSync(backupFile, JSON.stringify(data));
+                }
+            };
+            
+            dates.forEach(date => createBackup(date));
+            console.log(`Backup created for 4 days: ${dates.join(', ')}`);
+            return;
+        } catch (error) {
+            console.error('Fehler beim Warten auf bestehenden Scraping-Prozess für Backup:', error);
+            // Falls der bestehende Prozess fehlgeschlagen ist, starte einen neuen
         }
-        
-        // Sammle die nächsten 4 Schultage
-        while (dates.length < 4) {
-            dates.push(currentDateObj.toISOString().split('T')[0]);
-            currentDateObj = getNextSchoolDay(currentDateObj);
-        }
-        
-        // Backup Daten speichern
-        const createBackup = (data, date) => {
-            fs.writeFileSync(
-                path.join(dataDir, `data_${date}.json`),
-                JSON.stringify({
-                    data,
-                    courses: [...new Set(data.map(item => item.kurs))]
-                })
-            );
-        };
+    }
 
-        // Speichere alle 4 Tage als Backup
-        createBackup(dataToday, dates[0]);
-        createBackup(dataTomorrow, dates[1]);
-        createBackup(dataDayAfterTomorrow, dates[2]);
-        createBackup(dataDayAfterDayAfterTomorrow, dates[3]);
-        
-        console.log(`Backup created for 4 days: ${dates.join(', ')}`);
-    } catch (error) {
-        console.error('Fehler beim Erstellen des Backups:', error);
+    // Setze Lock und starte Scraping
+    isScraping = true;
+    scrapingPromise = (async () => {
+        try {
+            console.log("Creating daily backup for 4 days...");
+            const { dataToday, dataTomorrow, dataDayAfterTomorrow, dataDayAfterDayAfterTomorrow } = await scrapeData();
+            const currentDateStr = getCorrectDate();
+            
+            // Parse das Datum (Format: YYYY-MM-DD)
+            const [year, month, day] = currentDateStr.split('-').map(Number);
+            let currentDateObj = new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0));
+            
+            // Berechne die nächsten 4 Schultage
+            const dates = [];
+            
+            // Stelle sicher, dass wir mit einem Schultag starten
+            if (isWeekend(currentDateObj)) {
+                currentDateObj = getNextSchoolDay(currentDateObj);
+            }
+            
+            // Sammle die nächsten 4 Schultage
+            while (dates.length < 4) {
+                dates.push(currentDateObj.toISOString().split('T')[0]);
+                currentDateObj = getNextSchoolDay(currentDateObj);
+            }
+            
+            // Backup Daten speichern
+            const createBackup = (data, date) => {
+                fs.writeFileSync(
+                    path.join(dataDir, `data_${date}.json`),
+                    JSON.stringify({
+                        data,
+                        courses: [...new Set(data.map(item => item.kurs))]
+                    })
+                );
+            };
+
+            // Speichere alle 4 Tage als Backup
+            createBackup(dataToday, dates[0]);
+            createBackup(dataTomorrow, dates[1]);
+            createBackup(dataDayAfterTomorrow, dates[2]);
+            createBackup(dataDayAfterDayAfterTomorrow, dates[3]);
+            
+            console.log(`Backup created for 4 days: ${dates.join(', ')}`);
+        } catch (error) {
+            console.error('Fehler beim Erstellen des Backups:', error);
+            throw error; // Weiterwerfen, damit wartende Promises den Fehler sehen
+        }
+    })();
+
+    try {
+        await scrapingPromise;
+    } finally {
+        // Lock immer zurücksetzen, auch bei Fehlern
+        isScraping = false;
+        scrapingPromise = null;
     }
 };
 
@@ -598,8 +681,25 @@ app.get('/api/morgen', async (req, res) => {
     }
 });
 
+// Endpunkt für einzelnes Datum
+app.get('/api/date/:date', async (req, res) => {
+    try {
+        const date = req.params.date;
+        // Validiere Datumsformat (YYYY-MM-DD)
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+            res.status(400).send('Ungültiges Datumsformat. Erwartet: YYYY-MM-DD');
+            return;
+        }
+        const data = await getDataForDate(date);
+        res.json(data);
+    } catch (error) {
+        console.error('Fehler beim Abrufen der Daten für Datum:', error);
+        res.status(500).send('Serverfehler beim Abrufen der Daten');
+    }
+});
+
 // Endpunkt für 4 Schultage
-app.get('/api/both', async (req, res) => {
+app.get('/api/days', async (req, res) => {
     try {
         const currentDateStr = getCorrectDate();
         // Parse das Datum (Format: YYYY-MM-DD)
@@ -693,9 +793,21 @@ const getDataForDate = async (date) => {
         }
 
         // Wenn keine Datei existiert, hole neue Daten
+        // saveTemporaryData() hat bereits Lock-Mechanismus, also sicher aufrufen
         await saveTemporaryData();
+        
+        // Prüfe erneut, ob die Datei jetzt existiert (könnte durch laufendes Scraping erstellt worden sein)
         if (fs.existsSync(tempFile)) {
             const data = JSON.parse(fs.readFileSync(tempFile, 'utf8'));
+            return {
+                data: data.data || [],
+                courses: [...new Set((data.courses || []).filter(Boolean))]
+            };
+        }
+        
+        // Falls immer noch keine Datei existiert, prüfe Backup erneut
+        if (fs.existsSync(backupFile)) {
+            const data = JSON.parse(fs.readFileSync(backupFile, 'utf8'));
             return {
                 data: data.data || [],
                 courses: [...new Set((data.courses || []).filter(Boolean))]
