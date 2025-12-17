@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Datenschutzerklärung - BBS Friesoythe Vertretungsplan">
+    <meta name="theme-color" content="#f4f4f4">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <title>Datenschutzerklärung - BBS Friesoythe Vertretungsplan</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .legal-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 24px 20px;
+            line-height: 1.7;
+            color: var(--primary-color);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 32px;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            padding: 10px 16px;
+            border-radius: var(--border-radius);
+            background: var(--table-row-even);
+            transition: all 0.2s ease;
+        }
+
+        .back-link:hover {
+            background: var(--button-hover);
+            transform: translateX(-2px);
+        }
+
+        .back-link svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .legal-content h1 {
+            margin-bottom: 40px;
+            color: var(--primary-color);
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .legal-content h2 {
+            margin-top: 40px;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            font-size: 1.4em;
+            font-weight: 600;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--table-row-even);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legal-content h2 svg {
+            width: 24px;
+            height: 24px;
+            opacity: 0.7;
+        }
+
+        .legal-content h3 {
+            margin-top: 24px;
+            margin-bottom: 12px;
+            color: var(--primary-color);
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .legal-content p {
+            margin-bottom: 16px;
+            color: rgba(0, 0, 0, 0.8);
+        }
+
+        .legal-content ul {
+            margin-bottom: 20px;
+            padding-left: 24px;
+        }
+
+        .legal-content li {
+            margin-bottom: 10px;
+            color: rgba(0, 0, 0, 0.8);
+        }
+
+        .legal-content a {
+            color: var(--primary-color);
+            text-decoration: underline;
+            text-decoration-color: rgba(0, 0, 0, 0.2);
+            text-underline-offset: 3px;
+            transition: all 0.2s ease;
+        }
+
+        .legal-content a:hover {
+            text-decoration-color: var(--primary-color);
+            opacity: 0.8;
+        }
+
+        .contact-info {
+            background: linear-gradient(135deg, var(--table-row-even) 0%, rgba(248, 249, 250, 0.5) 100%);
+            padding: 24px;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        }
+
+        .contact-info p {
+            margin-bottom: 8px;
+        }
+
+        .contact-info strong {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.01) 100%);
+            padding: 20px 24px;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .highlight-box strong {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .info-box {
+            background: var(--table-row-even);
+            padding: 20px 24px;
+            border-radius: var(--border-radius);
+            margin: 16px 0;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .info-box ul {
+            margin: 8px 0 0 0;
+            padding-left: 20px;
+        }
+
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.1) 50%, transparent 100%);
+            margin: 40px 0;
+        }
+
+        .rights-list {
+            background: var(--table-row-even);
+            padding: 24px;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+        }
+
+        .rights-list ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .rights-list li {
+            margin-bottom: 12px;
+        }
+
+        .rights-list strong {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        @media screen and (min-width: 769px) {
+            .legal-content {
+                padding: 40px 32px;
+            }
+
+            .legal-content h1 {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <div class="header-content">
+                <h1>
+                    <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        <line x1="8" y1="7" x2="18" y2="7"></line>
+                        <line x1="8" y1="11" x2="18" y2="11"></line>
+                        <line x1="8" y1="15" x2="13" y2="15"></line>
+                    </svg>
+                    <span>BBS Friesoythe Vertretungsplan</span>
+                </h1>
+            </div>
+        </header>
+
+        <div class="legal-content">
+            <a href="index.html" class="back-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+                Zurück zum Vertretungsplan
+            </a>
+            
+            <h1>Datenschutzerklärung</h1>
+
+            <h2>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                1. Datenschutz auf einen Blick
+            </h2>
+            
+            <h3>Allgemeine Hinweise</h3>
+            <p>Die folgenden Hinweise geben einen einfachen Überblick darüber, was mit Ihren personenbezogenen Daten passiert, wenn Sie diese Website besuchen. Personenbezogene Daten sind alle Daten, mit denen Sie persönlich identifiziert werden können.</p>
+
+            <h3>Datenerfassung auf dieser Website</h3>
+            <p><strong>Wer ist verantwortlich für die Datenerfassung auf dieser Website?</strong></p>
+            <p>Die Datenverarbeitung auf dieser Website erfolgt durch den Websitebetreiber. Dessen Kontaktdaten können Sie dem <a href="impressum.html">Impressum</a> dieser Website entnehmen.</p>
+
+            <div class="section-divider"></div>
+
+            <h2>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+                2. Hosting und technische Dienste
+            </h2>
+            
+            <h3>Eigener Server</h3>
+            <p>Diese Website wird auf einem eigenen Server gehostet. Bei jedem Zugriff auf diese Website werden automatisch Informationen in sogenannten Server-Log-Dateien gespeichert. Dies sind:</p>
+            <div class="info-box">
+                <ul>
+                    <li>Browsertyp und Browserversion</li>
+                    <li>verwendetes Betriebssystem</li>
+                    <li>Referrer URL (die zuvor besuchte Seite)</li>
+                    <li>Hostname des zugreifenden Rechners</li>
+                    <li>Uhrzeit der Serveranfrage</li>
+                    <li>IP-Adresse</li>
+                </ul>
+            </div>
+            <p>Diese Daten werden ausschließlich zur Gewährleistung der technischen Sicherheit und Funktionsfähigkeit der Website sowie zur Abwehr von Missbrauch verwendet.</p>
+
+            <h3>Cloudflare DNS</h3>
+            <p>Für das DNS-Management wird Cloudflare genutzt. Anbieter ist die Cloudflare, Inc., 101 Townsend St, San Francisco, CA 94107, USA. Cloudflare kann dabei technische Daten wie IP-Adressen und Zugriffszeiten verarbeiten. Die Datenübertragung in die USA erfolgt auf Grundlage der Standardvertragsklauseln der EU-Kommission. Weitere Informationen finden Sie in der Datenschutzerklärung von Cloudflare: <a href="https://www.cloudflare.com/privacy/" target="_blank" rel="noopener">https://www.cloudflare.com/privacy/</a></p>
+
+            <h3>Domain-Provider</h3>
+            <p>Die Domains dieser Website werden über Netcup und IONOS verwaltet. Diese Provider können bei der Domain-Verwaltung technische Daten verarbeiten. Weitere Informationen finden Sie in den jeweiligen Datenschutzerklärungen der Anbieter.</p>
+
+            <div class="section-divider"></div>
+
+            <h2>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                3. Allgemeine Hinweise und Pflichtinformationen
+            </h2>
+            
+            <h3>Datenschutz</h3>
+            <p>Die Betreiber dieser Seiten nehmen den Schutz Ihrer persönlichen Daten sehr ernst. Wir behandeln Ihre personenbezogenen Daten vertraulich und entsprechend der gesetzlichen Datenschutzvorschriften sowie dieser Datenschutzerklärung.</p>
+
+            <h3>Hinweis zur verantwortlichen Stelle</h3>
+            <p>Die verantwortliche Stelle für die Datenverarbeitung auf dieser Website ist:</p>
+            <div class="contact-info">
+                <p><strong>DeekenDigital by Konstantin Deeken</strong><br>
+                Weidenweg 2<br>
+                26683 Saterland<br>
+                Deutschland</p>
+                <p><strong>E-Mail:</strong> <a href="mailto:konstantin@deeken.digital">konstantin@deeken.digital</a></p>
+            </div>
+
+            <h3>Aufsichtsbehörde</h3>
+            <p>Die zuständige Aufsichtsbehörde für Datenschutz ist die Landesbeauftragte für den Datenschutz Niedersachsen. Sie haben das Recht, sich bei dieser Aufsichtsbehörde über die Verarbeitung Ihrer personenbezogenen Daten zu beschweren.</p>
+
+            <div class="section-divider"></div>
+
+            <h2>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+                4. Datenerfassung auf dieser Website
+            </h2>
+            
+            <h3>Cookies</h3>
+            <div class="highlight-box">
+                <p><strong>Diese Website verwendet keine Cookies.</strong> Es werden keine Daten auf Ihrem Gerät gespeichert, die Ihren Besuch auf dieser Website verfolgen oder analysieren könnten. Insbesondere werden keine Werbe- oder Analyse-Cookies gesetzt.</p>
+            </div>
+
+            <h3>LocalStorage</h3>
+            <p>Diese Anwendung verwendet den LocalStorage Ihres Browsers ausschließlich zur Speicherung Ihrer persönlichen Präferenzen:</p>
+            <div class="info-box">
+                <ul>
+                    <li><strong>Kursfilter-Präferenz:</strong> Ihre letzte Auswahl eines Kursfilters wird gespeichert, damit diese beim nächsten Besuch automatisch wiederhergestellt wird.</li>
+                    <li><strong>Datumsauswahl:</strong> Ihre letzte Datumsauswahl wird gespeichert, damit diese beim nächsten Besuch automatisch wiederhergestellt wird.</li>
+                </ul>
+            </div>
+            <p>Diese Daten werden <strong>nur lokal auf Ihrem Gerät</strong> gespeichert und <strong>nicht an unseren Server übertragen</strong>. Sie können diese Daten jederzeit über die Einstellungen Ihres Browsers löschen. Die Speicherung erfolgt auf Grundlage Ihrer Einwilligung durch die Nutzung dieser Website (Art. 6 Abs. 1 lit. a DSGVO).</p>
+
+            <h3>URL-Hash-Parameter</h3>
+            <p>Diese Anwendung verwendet URL-Hash-Parameter (z.B. <code>#BES2G1;date=2025-12-18</code>), um Kursfilter und Datumsauswahl in der URL zu speichern. Dies ermöglicht es Ihnen, bestimmte Ansichten zu teilen oder zu bookmarken. Diese Parameter werden nur lokal in Ihrem Browser verarbeitet und nicht an unseren Server übertragen.</p>
+
+            <h3>Server-Log-Dateien</h3>
+            <p>Der Provider der Seiten erhebt und speichert automatisch Informationen in sogenannten Server-Log-Dateien, die Ihr Browser automatisch an uns übermittelt. Dies sind:</p>
+            <div class="info-box">
+                <ul>
+                    <li>Browsertyp und Browserversion</li>
+                    <li>verwendetes Betriebssystem</li>
+                    <li>Referrer URL</li>
+                    <li>Hostname des zugreifenden Rechners</li>
+                    <li>Uhrzeit der Serveranfrage</li>
+                    <li>IP-Adresse</li>
+                </ul>
+            </div>
+            <p>Eine Zusammenführung dieser Daten mit anderen Datenquellen wird nicht vorgenommen. Die Erfassung dieser Daten erfolgt automatisch, sobald Sie diese Website betreten.</p>
+
+            <h3>API-Anfragen</h3>
+            <p>Beim Abruf von Vertretungsdaten über die API-Endpunkte dieser Anwendung (<code>/api/data</code>, <code>/api/morgen</code>, <code>/api/date/:date</code>, <code>/api/days</code>) werden technische Daten (IP-Adresse, User-Agent, Zeitstempel, angeforderte URL) in den Server-Log-Dateien gespeichert. Diese Daten werden ausschließlich zur Gewährleistung der technischen Sicherheit und Funktionsfähigkeit der Website verwendet.</p>
+
+            <h3>Vertretungsdaten</h3>
+            <p>Die auf dieser Website angezeigten Vertretungsdaten werden von der WebUntis-Plattform der BBS Friesoythe abgerufen. Diese Daten werden auf unserem Server zwischengespeichert (in JSON-Dateien), um die Performance der Anwendung zu verbessern und die Last auf die WebUntis-Server zu reduzieren.</p>
+            <div class="info-box">
+                <p><strong>Wichtige Hinweise zu Vertretungsdaten:</strong></p>
+                <ul>
+                    <li>Die Vertretungsdaten selbst enthalten <strong>keine personenbezogenen Daten der Website-Besucher</strong>.</li>
+                    <li>Es handelt sich ausschließlich um <strong>öffentlich zugängliche Informationen</strong> über Vertretungen, Räume und Lehrer der BBS Friesoythe.</li>
+                    <li>Die Daten werden automatisch alle 10 Minuten aktualisiert.</li>
+                    <li>Alte Daten werden automatisch bereinigt, sobald sie nicht mehr relevant sind (typischerweise nach Ablauf des jeweiligen Schultages).</li>
+                </ul>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <h2>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 11l3 3L22 4"></path>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"></path>
+                </svg>
+                5. Rechtsgrundlagen der Datenverarbeitung
+            </h2>
+            
+            <h3>Server-Log-Dateien</h3>
+            <p>Die Verarbeitung der Server-Log-Dateien erfolgt auf Grundlage unseres berechtigten Interesses (Art. 6 Abs. 1 lit. f DSGVO) an der technischen Sicherheit und Funktionsfähigkeit der Website sowie zur Abwehr von Missbrauch.</p>
+
+            <h3>LocalStorage</h3>
+            <p>Die Speicherung Ihrer Präferenzen im LocalStorage erfolgt auf Grundlage Ihrer Einwilligung durch die Nutzung dieser Website (Art. 6 Abs. 1 lit. a DSGVO). Sie können diese Einwilligung jederzeit widerrufen, indem Sie die Daten im LocalStorage Ihres Browsers löschen.</p>
+
+            <h3>Vertretungsdaten</h3>
+            <p>Die Verarbeitung und Zwischenspeicherung der Vertretungsdaten erfolgt auf Grundlage unseres berechtigten Interesses (Art. 6 Abs. 1 lit. f DSGVO) an der Bereitstellung einer funktionsfähigen und performanten Anwendung für die Nutzer.</p>
+
+            <div class="section-divider"></div>
+
+            <h2>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                6. Aufbewahrungsfristen
+            </h2>
+            <div class="info-box">
+                <ul>
+                    <li><strong>Server-Log-Dateien:</strong> Diese werden automatisch nach 30 Tagen gelöscht.</li>
+                    <li><strong>LocalStorage-Daten:</strong> Diese werden nur lokal auf Ihrem Gerät gespeichert und können jederzeit von Ihnen gelöscht werden. Sie werden nicht automatisch gelöscht, bleiben aber nur auf Ihrem Gerät.</li>
+                    <li><strong>Vertretungsdaten:</strong> Diese werden automatisch bereinigt, sobald sie nicht mehr relevant sind. Temporäre Dateien (temp_*.json) werden für die nächsten 4 Schultage aufbewahrt. Tägliche Backups (data_*.json) werden um 03:00 Uhr erstellt und automatisch bereinigt, sobald das entsprechende Datum abgelaufen ist.</li>
+                </ul>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <h2>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                7. Ihre Rechte
+            </h2>
+            
+            <h3>Betroffenenrechte nach der DSGVO</h3>
+            <p>Sie haben folgende Rechte bezüglich Ihrer personenbezogenen Daten:</p>
+            <div class="rights-list">
+                <ul>
+                    <li><strong>Auskunftsrecht (Art. 15 DSGVO):</strong> Sie können Auskunft über die zu Ihrer Person verarbeiteten Daten verlangen</li>
+                    <li><strong>Recht auf Berichtigung (Art. 16 DSGVO):</strong> Sie können die Berichtigung unrichtiger Daten verlangen</li>
+                    <li><strong>Recht auf Löschung (Art. 17 DSGVO):</strong> Sie können die Löschung Ihrer Daten verlangen</li>
+                    <li><strong>Recht auf Einschränkung der Verarbeitung (Art. 18 DSGVO):</strong> Sie können die Einschränkung der Verarbeitung verlangen</li>
+                    <li><strong>Recht auf Datenübertragbarkeit (Art. 20 DSGVO):</strong> Sie können Ihre Daten in einem strukturierten Format erhalten</li>
+                    <li><strong>Widerspruchsrecht (Art. 21 DSGVO):</strong> Sie können der Verarbeitung widersprechen</li>
+                    <li><strong>Widerrufsrecht (Art. 7 Abs. 3 DSGVO):</strong> Sie können Ihre Einwilligung jederzeit widerrufen</li>
+                </ul>
+            </div>
+
+            <h3>Ausübung Ihrer Rechte</h3>
+            <p>Um Ihre Rechte auszuüben, können Sie sich jederzeit an uns wenden. Kontaktdaten finden Sie im <a href="impressum.html">Impressum</a>. Sie haben außerdem das Recht, sich bei der zuständigen Aufsichtsbehörde zu beschweren.</p>
+
+            <div class="section-divider"></div>
+
+            <h2>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                8. Widerspruch gegen Werbe-Mails
+            </h2>
+            <p>Der Nutzung von im Rahmen der Impressumspflicht veröffentlichten Kontaktdaten zur Übersendung von nicht ausdrücklich angeforderter Werbung und Informationsmaterialien wird hiermit widersprochen. Die Betreiber der Seiten behalten sich ausdrücklich rechtliche Schritte im Falle der unverlangten Zusendung von Werbeinformationen, etwa durch Spam-E-Mails, vor.</p>
+
+            <h2>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                </svg>
+                9. Änderungen dieser Datenschutzerklärung
+            </h2>
+            <p>Wir behalten uns vor, diese Datenschutzerklärung anzupassen, damit sie stets den aktuellen rechtlichen Anforderungen entspricht oder um Änderungen unserer Leistungen in der Datenschutzerklärung umzusetzen. Für Ihren erneuten Besuch gilt dann die neue Datenschutzerklärung.</p>
+
+            <h2>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                10. Kontakt
+            </h2>
+            <p>Bei Fragen zur Erhebung, Verarbeitung oder Nutzung Ihrer personenbezogenen Daten wenden Sie sich bitte an: <a href="mailto:konstantin@deeken.digital">konstantin@deeken.digital</a></p>
+        </div>
+
+        <footer class="footer">
+            <div class="footer-credits">
+                Umsetzung & Hosting mit ❤️ – <a href="https://deeken.digital" target="_blank" rel="noopener">DeekenDigital by Konstantin Deeken</a>
+            </div>
+            <div class="footer-links">
+                <a href="https://github.com/KonsDeeken/BBS-Friesoythe-Vertretungsplan" target="_blank" rel="noopener" class="footer-link">
+                    <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                    </svg>
+                    <span>GitHub</span>
+                </a>
+                <a href="https://forms.gle/SdA2HfNGgqiHhsoa9" target="_blank" rel="noopener" class="footer-link">
+                    <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        <line x1="12" y1="8" x2="12" y2="16"></line>
+                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                    </svg>
+                    <span>Verbesserungsvorschläge</span>
+                </a>
+                <a href="impressum.html" class="footer-link">
+                    <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <span>Impressum</span>
+                </a>
+                <a href="datenschutz.html" class="footer-link">
+                    <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <span>Datenschutz</span>
+                </a>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
