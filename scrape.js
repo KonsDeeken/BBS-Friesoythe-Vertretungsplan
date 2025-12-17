@@ -1002,44 +1002,10 @@ const getDataForDate = async (date) => {
             };
         }
 
-        // Wenn keine Datei existiert, hole neue Daten
-        // saveTemporaryData() hat bereits Lock-Mechanismus, also sicher aufrufen
-        await saveTemporaryData();
-        
-        // Prüfe erneut im Index (könnte durch laufendes Scraping aktualisiert worden sein)
-        const newIndexEntry = findInIndex(date);
-        if (newIndexEntry) {
-            const tempFileFromIndex = path.join(dataDir, newIndexEntry.filename);
-            if (fs.existsSync(tempFileFromIndex)) {
-                const data = JSON.parse(fs.readFileSync(tempFileFromIndex, 'utf8'));
-                return {
-                    data: data.data || [],
-                    courses: [...new Set((data.courses || []).filter(Boolean))],
-                    dateText: data.dateText || newIndexEntry.dateText || null
-                };
-            }
-        }
-        
-        // Prüfe erneut, ob die Datei jetzt existiert (könnte durch laufendes Scraping erstellt worden sein)
-        if (fs.existsSync(tempFile)) {
-            const data = JSON.parse(fs.readFileSync(tempFile, 'utf8'));
-            return {
-                data: data.data || [],
-                courses: [...new Set((data.courses || []).filter(Boolean))],
-                dateText: data.dateText || null
-            };
-        }
-        
-        // Falls immer noch keine Datei existiert, prüfe Backup erneut
-        if (fs.existsSync(backupFile)) {
-            const data = JSON.parse(fs.readFileSync(backupFile, 'utf8'));
-            return {
-                data: data.data || [],
-                courses: [...new Set((data.courses || []).filter(Boolean))],
-                dateText: data.dateText || null
-            };
-        }
-
+        // Wenn keine Daten im Index vorhanden sind und keine Dateien existieren,
+        // gebe direkt zurück, dass keine Daten vorhanden sind (OHNE zu scrapen)
+        // Dies gilt auch für zukünftige Tage, für die noch keine Daten gescraped wurden
+        console.log(`Keine Daten für ${date} gefunden. Kein Scraping ausgelöst.`);
         return { data: [], courses: [], dateText: null };
     } catch (error) {
         console.error(`Fehler beim Lesen der Daten für ${date}:`, error);
