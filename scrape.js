@@ -1014,9 +1014,18 @@ const getDataForDate = async (date) => {
 };
 
 // Server starten
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`Server läuft unter http://localhost:${PORT}`);
     scheduleBackup();
+    
+    // Initiales Scraping beim Start
+    console.log('Starte initiales Scraping der 4 Tage...');
+    try {
+        await saveTemporaryData();
+        console.log('Initiales Scraping abgeschlossen.');
+    } catch (error) {
+        console.error('Fehler beim initialen Scraping:', error);
+    }
 });
 
 // Regelmäßige Aktualisierung der Daten
