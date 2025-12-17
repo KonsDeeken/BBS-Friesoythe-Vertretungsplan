@@ -304,7 +304,7 @@ class DateManager {
             
             // Wenn morgen Wochenende ist, zum nächsten Schultag springen
             if (this.isWeekend(tomorrow)) {
-                return this.getNextSchoolDay(germanTime);
+                return this.getNextSchoolDay(tomorrow);
             }
             
             return tomorrow;

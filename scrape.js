@@ -107,6 +107,11 @@ const getCorrectDate = () => {
             const nextSchoolDay = getNextSchoolDay(germanTime);
             return nextSchoolDay.toISOString().split('T')[0];
         }
+        // Wenn der nächste Tag kein Wochenende ist, formatiere und gib ihn zurück
+        const year = germanTime.getUTCFullYear();
+        const month = String(germanTime.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(germanTime.getUTCDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     } else if (isWeekend(germanTime)) {
         // Wenn aktuell Wochenende ist, zum nächsten Schultag springen
         const nextSchoolDay = getNextSchoolDay(germanTime);
