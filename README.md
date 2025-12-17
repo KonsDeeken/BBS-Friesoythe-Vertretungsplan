@@ -97,8 +97,11 @@ BBS-Friesoythe-Vertretungsplan/
 │   ├── index.html         # Haupt-HTML-Datei mit Custom Date Picker
 │   ├── script.js          # Frontend-JavaScript (Vanilla JS, modulare Klassen)
 │   ├── styles.css         # Styling und Responsive Design
+│   ├── impressum.html     # Impressum-Seite
+│   ├── datenschutz.html   # Datenschutzerklärung
 │   └── favicon.png        # Favicon
 ├── data/                  # Gespeicherte Vertretungsdaten
+│   ├── config.json        # Index der gescrapten Daten
 │   ├── temp_*.json        # Temporäre Dateien (nächste 4 Schultage)
 │   └── data_*.json        # Tägliche Backups (Format: data_YYYY-MM-DD.json)
 ├── scrape.js             # Backend-Server & Scraping-Logik
@@ -127,6 +130,7 @@ Die Anwendung stellt folgende REST-API-Endpunkte zur Verfügung:
 - **`GET /api/morgen`** - Vertretungsdaten für morgen (überspringt Wochenenden automatisch)
 - **`GET /api/date/:date`** - Vertretungsdaten für ein spezifisches Datum (Format: YYYY-MM-DD)
 - **`GET /api/days`** - Vertretungsdaten für die nächsten 4 Schultage kombiniert
+- **`GET /api/config`** - Index der gescrapten Daten (für Debugging/Monitoring)
 
 ### Antwortformat
 
@@ -159,6 +163,7 @@ Die Anwendung stellt folgende REST-API-Endpunkte zur Verfügung:
 
 ## Automatische Updates
 
+- **Initiales Scraping**: Beim Serverstart werden automatisch die nächsten 4 Schultage gescraped
 - **Intervall-Updates**: Daten werden alle 10 Minuten automatisch aktualisiert
 - **Tägliches Backup**: Um 03:00 Uhr MEZ wird ein tägliches Backup für die nächsten 4 Schultage erstellt
 - **Intelligente Zeiterkennung**: Automatische Umschaltung auf den nächsten Tag ab 17:00 Uhr (deutsche Zeitzone)
@@ -166,6 +171,7 @@ Die Anwendung stellt folgende REST-API-Endpunkte zur Verfügung:
 - **4-Tage-Scraping**: Paralleles Scraping von 4 Tagen (heute, morgen, übermorgen, über-übermorgen) für optimale Performance
 - **Automatische Bereinigung**: Alte temporäre Dateien werden automatisch gelöscht (behält nur die nächsten 4 Schultage)
 - **Retry-Logik**: Automatische Wiederholung bei Fehlern (3 Versuche mit 5 Sekunden Verzögerung)
+- **Kein Ad-hoc-Scraping**: Wenn für ein angefragtes Datum keine Daten vorhanden sind, wird nicht automatisch gescraped, sondern direkt zurückgegeben, dass keine Daten vorhanden sind
 
 ## URL-Hash-Funktionalität
 
@@ -251,7 +257,8 @@ Die Anwendung scraped Daten von der WebUntis-Monitor-Seite der BBS Friesoythe:
 - **Caching**: 
   - Lokale JSON-Dateien für temporäre Daten (temp_*.json)
   - Tägliche Backups (data_*.json)
-  - Automatische Fallback-Logik: temp → backup → neues Scraping
+  - Index-basierte Datenverwaltung (config.json)
+  - Automatische Fallback-Logik: temp → backup → keine Daten (kein automatisches Scraping bei API-Anfragen)
 - **Datenverwaltung**:
   - Automatische Bereinigung alter temporärer Dateien
   - Beibehaltung der nächsten 4 Schultage
@@ -318,6 +325,11 @@ ENTSTANDEN.
 - **Website**: [deeken.digital](https://deeken.digital)
 - **Impressum**: [deeken.digital/impressum](https://deeken.digital/impressum)
 - **Datenschutz**: [deeken.digital/datenschutz](https://deeken.digital/datenschutz)
+
+### Rechtliches
+
+- **Impressum**: [bbs.deeken.digital/impressum.html](https://bbs.deeken.digital/impressum.html)
+- **Datenschutzerklärung**: [bbs.deeken.digital/datenschutz.html](https://bbs.deeken.digital/datenschutz.html)
 
 ---
 
