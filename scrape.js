@@ -32,6 +32,8 @@ if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
 }
 
+const configFile = path.join(dataDir, 'config.json');
+
 /**
  * Prüft, ob ein Datum ein Wochenende ist
  * @param {Date} date - Das zu prüfende Datum
@@ -55,6 +57,97 @@ const getNextSchoolDay = (date) => {
         nextDay.setUTCDate(nextDay.getUTCDate() + 1);
     }
     return nextDay;
+};
+
+/**
+ * Extrahiert das tatsächliche Datum aus dateText (z.B. "Freitag, 19.12.2025" -> "2025-12-19")
+ * @param {string} dateText - Datumstext im Format "Wochentag, DD.MM.YYYY"
+ * @returns {string|null} Datum im Format YYYY-MM-DD oder null
+ */
+const extractActualDateFromText = (dateText) => {
+    if (!dateText) return null;
+    
+    // Suche nach Format "DD.MM.YYYY" oder "D.M.YYYY"
+    const match = dateText.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+    if (match) {
+        const day = String(match[1]).padStart(2, '0');
+        const month = String(match[2]).padStart(2, '0');
+        const year = match[3];
+        return `${year}-${month}-${day}`;
+    }
+    
+    return null;
+};
+
+/**
+ * Liest die config.json Datei
+ * @returns {Object} Config-Objekt mit Index
+ */
+const readConfig = () => {
+    try {
+        if (fs.existsSync(configFile)) {
+            const content = fs.readFileSync(configFile, 'utf8');
+            return JSON.parse(content);
+        }
+    } catch (error) {
+        console.error('Fehler beim Lesen der config.json:', error);
+    }
+    
+    // Standard-Struktur zurückgeben
+    return {
+        index: {},
+        lastUpdated: null
+    };
+};
+
+/**
+ * Schreibt die config.json Datei
+ * @param {Object} config - Config-Objekt
+ */
+const writeConfig = (config) => {
+    try {
+        fs.writeFileSync(configFile, JSON.stringify(config, null, 2), 'utf8');
+    } catch (error) {
+        console.error('Fehler beim Schreiben der config.json:', error);
+    }
+};
+
+/**
+ * Aktualisiert den Index in config.json
+ * @param {string} actualDate - Tatsächliches gescraptes Datum (YYYY-MM-DD)
+ * @param {string} dateText - Gescraptes Datum mit Wochentag (z.B. "Freitag, 19.12.2025")
+ * @param {string} filename - Dateiname (z.B. "temp_2025-12-19.json")
+ */
+const updateIndex = (actualDate, dateText, filename) => {
+    const config = readConfig();
+    
+    config.index[actualDate] = {
+        actualDate: actualDate,
+        dateText: dateText || null,
+        filename: filename,
+        scrapedAt: new Date().toISOString()
+    };
+    
+    config.lastUpdated = new Date().toISOString();
+    
+    writeConfig(config);
+    console.log(`Index aktualisiert: ${actualDate} (${dateText || 'kein dateText'})`);
+};
+
+/**
+ * Sucht im Index nach einem Datum
+ * @param {string} date - Datum im Format YYYY-MM-DD
+ * @returns {Object|null} Index-Eintrag oder null
+ */
+const findInIndex = (date) => {
+    const config = readConfig();
+    
+    // Direkte Suche nach actualDate (Schlüssel im Index)
+    if (config.index[date]) {
+        return config.index[date];
+    }
+    
+    return null;
 };
 
 /**
@@ -167,7 +260,7 @@ const validateUrl = async (page, url) => {
 
 /**
  * Scrapt die Vertretungsdaten von WebUntis für 4 Tage
- * @returns {Promise<{dataToday: Array, dataTomorrow: Array, dataDayAfterTomorrow: Array, dataDayAfterDayAfterTomorrow: Array}>}
+ * @returns {Promise<{dataToday: {data: Array, dateText: string}, dataTomorrow: {data: Array, dateText: string}, dataDayAfterTomorrow: {data: Array, dateText: string}, dataDayAfterDayAfterTomorrow: {data: Array, dateText: string}}>}
  */
 const scrapeData = async () => {
     console.log("Starting scraping process for 4 days...");
@@ -211,9 +304,9 @@ const scrapeData = async () => {
                 if (!await validateUrl(pageToday, URLS.TODAY)) {
                     throw new Error("Failed to access today's URL");
                 }
-                const data = await extractTableData(pageToday);
-                console.log(`Found ${data.length} entries for today`);
-                return data;
+                const result = await extractTableData(pageToday);
+                console.log(`Found ${result.data.length} entries for today, date: ${result.dateText || 'unknown'}`);
+                return result;
             }),
             // Scrape morgen
             retry(async () => {
@@ -221,9 +314,9 @@ const scrapeData = async () => {
                 if (!await validateUrl(pageTomorrow, URLS.TOMORROW)) {
                     throw new Error("Failed to access tomorrow's URL");
                 }
-                const data = await extractTableData(pageTomorrow);
-                console.log(`Found ${data.length} entries for tomorrow`);
-                return data;
+                const result = await extractTableData(pageTomorrow);
+                console.log(`Found ${result.data.length} entries for tomorrow, date: ${result.dateText || 'unknown'}`);
+                return result;
             }),
             // Scrape übernächster Tag (2T vor)
             retry(async () => {
@@ -231,9 +324,9 @@ const scrapeData = async () => {
                 if (!await validateUrl(pageDayAfterTomorrow, URLS.DAY_AFTER_TOMORROW)) {
                     throw new Error("Failed to access day after tomorrow's URL");
                 }
-                const data = await extractTableData(pageDayAfterTomorrow);
-                console.log(`Found ${data.length} entries for day after tomorrow`);
-                return data;
+                const result = await extractTableData(pageDayAfterTomorrow);
+                console.log(`Found ${result.data.length} entries for day after tomorrow, date: ${result.dateText || 'unknown'}`);
+                return result;
             }),
             // Scrape über-übernächster Tag (3T vor)
             retry(async () => {
@@ -241,9 +334,9 @@ const scrapeData = async () => {
                 if (!await validateUrl(pageDayAfterDayAfterTomorrow, URLS.DAY_AFTER_DAY_AFTER_TOMORROW)) {
                     throw new Error("Failed to access day after day after tomorrow's URL");
                 }
-                const data = await extractTableData(pageDayAfterDayAfterTomorrow);
-                console.log(`Found ${data.length} entries for day after day after tomorrow`);
-                return data;
+                const result = await extractTableData(pageDayAfterDayAfterTomorrow);
+                console.log(`Found ${result.data.length} entries for day after day after tomorrow, date: ${result.dateText || 'unknown'}`);
+                return result;
             })
         ]);
 
@@ -261,7 +354,7 @@ const scrapeData = async () => {
 /**
  * Extrahiert Tabellendaten von einer WebUntis-Seite
  * @param {Page} page - Puppeteer Page Objekt
- * @returns {Promise<Array>}
+ * @returns {Promise<{data: Array, dateText: string}>}
  */
 const extractTableData = async (page) => {
     try {
@@ -365,18 +458,36 @@ const extractTableData = async (page) => {
 
         if (!waitResult?.hasRows) {
             console.log(`No substitution rows rendered on page (reason: ${waitResult?.reason || 'unknown'}), returning empty dataset.`);
-            return [];
+            return { data: [], dateText: null };
         }
         
-        // Extrahiere die Tabellendaten
-        const data = await page.evaluate(() => {
+        // Extrahiere die Tabellendaten und das Datum
+        const result = await page.evaluate(() => {
+            // Extrahiere das Datum aus dem dateNode Element
+            let dateText = null;
+            const dateNode = document.querySelector('[data-dojo-attach-point="dateNode"]');
+            if (dateNode) {
+                dateText = dateNode.textContent?.trim() || null;
+            } else {
+                // Fallback: Suche im title-Text nach dem Datum
+                const titleNode = document.querySelector('[data-dojo-attach-point="titleNode"]');
+                if (titleNode) {
+                    const titleText = titleNode.textContent || '';
+                    // Suche nach Format "Freitag, 19.12.2025" oder ähnlich
+                    const dateMatch = titleText.match(/([A-Za-zäöüÄÖÜß]+,\s*\d{1,2}\.\d{1,2}\.\d{4})/);
+                    if (dateMatch) {
+                        dateText = dateMatch[1].trim();
+                    }
+                }
+            }
+
             const rows = Array.from(document.querySelectorAll('table tbody tr'));
             if (!rows.length) {
                 console.log("No rows found in table");
-                return [];
+                return { data: [], dateText };
             }
 
-            return rows.map(row => {
+            const data = rows.map(row => {
                 const cells = Array.from(row.querySelectorAll('td'));
                 if (cells.length < 7) {
                     console.log("Row has insufficient cells:", cells.length);
@@ -392,9 +503,11 @@ const extractTableData = async (page) => {
                     notizen: cells[6]?.innerText?.trim() || '',
                 };
             }).filter(Boolean); // Remove any null entries
+
+            return { data, dateText };
         });
 
-        return data;
+        return result;
     } catch (error) {
         console.error("Error extracting table data:", error);
         // Bei jedem Fehler eine leere Liste zurückgeben statt zu crashen
@@ -403,44 +516,56 @@ const extractTableData = async (page) => {
 };
 
 /**
- * Löscht alte temporäre Dateien im data-Verzeichnis (behält die nächsten 4 Schultage)
+ * Löscht alte temporäre Dateien im data-Verzeichnis (behält die nächsten 4 gescrapten Tage)
+ * Bereinigt auch den Index in config.json
  */
 const cleanupOldTempFiles = () => {
     try {
-        // Aktuelles Datum ermitteln
-        const currentDateStr = getCorrectDate();
-        // Parse das Datum (Format: YYYY-MM-DD)
-        const [year, month, day] = currentDateStr.split('-').map(Number);
-        let currentDateObj = new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0));
-        
-        // Berechne die nächsten 4 Schultage
-        const datesToKeep = [];
-        
-        // Stelle sicher, dass wir mit einem Schultag starten
-        if (isWeekend(currentDateObj)) {
-            currentDateObj = getNextSchoolDay(currentDateObj);
-        }
-        
-        // Sammle die nächsten 4 Schultage
-        while (datesToKeep.length < 4) {
-            datesToKeep.push(currentDateObj.toISOString().split('T')[0]);
-            currentDateObj = getNextSchoolDay(currentDateObj);
-        }
-        
-        // Alle Dateien im data-Verzeichnis durchsuchen
+        const config = readConfig();
         const files = fs.readdirSync(dataDir);
         
-        // Temporäre Dateien filtern und löschen, außer die nächsten 4 Schultage
+        // Hole die tatsächlichen gescrapten Daten aus dem Index (die nächsten 4)
+        const actualDatesToKeep = Object.values(config.index)
+            .map(entry => entry.actualDate)
+            .filter(date => {
+                // Prüfe, ob das Datum heute oder in der Zukunft liegt
+                const entryDate = new Date(date + 'T00:00:00');
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                return entryDate >= today;
+            })
+            .sort()
+            .slice(0, 4); // Nimm die nächsten 4
+        
+        let indexUpdated = false;
+        
+        // Lösche Einträge aus dem Index, die nicht in actualDatesToKeep sind
+        for (const actualDate in config.index) {
+            if (!actualDatesToKeep.includes(actualDate)) {
+                delete config.index[actualDate];
+                indexUpdated = true;
+                console.log(`Index-Eintrag entfernt: ${actualDate}`);
+            }
+        }
+        
+        // Lösche Dateien, die nicht mehr im Index sind
         files.forEach(file => {
             if (file.startsWith('temp_')) {
                 const fileDate = file.replace('temp_', '').replace('.json', '');
-                if (!datesToKeep.includes(fileDate)) {
+                if (!actualDatesToKeep.includes(fileDate)) {
                     const filePath = path.join(dataDir, file);
-                    fs.unlinkSync(filePath);
-                    console.log(`Alte temporäre Datei gelöscht: ${file}`);
+                    if (fs.existsSync(filePath)) {
+                        fs.unlinkSync(filePath);
+                        console.log(`Alte temporäre Datei gelöscht: ${file}`);
+                    }
                 }
             }
         });
+        
+        if (indexUpdated) {
+            writeConfig(config);
+            console.log('Index bereinigt');
+        }
     } catch (error) {
         console.error('Fehler beim Löschen alter temporärer Dateien:', error);
     }
@@ -491,22 +616,37 @@ const saveTemporaryData = async () => {
             // Lösche alte temporäre Dateien
             cleanupOldTempFiles();
             
-            // Speichere Daten mit Kurs-Liste
-            const saveData = (data, date) => {
+            // Speichere Daten mit Kurs-Liste und gescraptem Datum
+            const saveData = (scrapedResult) => {
+                // Extrahiere das tatsächliche Datum aus dateText
+                const actualDate = extractActualDateFromText(scrapedResult.dateText);
+                
+                if (!actualDate) {
+                    console.warn(`Konnte kein Datum aus dateText extrahieren: ${scrapedResult.dateText}`);
+                    return; // Überspringe, wenn kein Datum extrahiert werden kann
+                }
+                
+                const filename = `temp_${actualDate}.json`;
+                const filePath = path.join(dataDir, filename);
+                
                 fs.writeFileSync(
-                    path.join(dataDir, `temp_${date}.json`),
+                    filePath,
                     JSON.stringify({
-                        data,
-                        courses: [...new Set(data.map(item => item.kurs))]
+                        data: scrapedResult.data,
+                        courses: [...new Set(scrapedResult.data.map(item => item.kurs))],
+                        dateText: scrapedResult.dateText || null // Gescraptes Datum mit Wochentag
                     })
                 );
+                
+                // Aktualisiere Index mit tatsächlichem Datum
+                updateIndex(actualDate, scrapedResult.dateText, filename);
             };
 
-            // Speichere alle 4 Tage
-            saveData(dataToday, dates[0]);
-            saveData(dataTomorrow, dates[1]);
-            saveData(dataDayAfterTomorrow, dates[2]);
-            saveData(dataDayAfterDayAfterTomorrow, dates[3]);
+            // Speichere alle 4 Tage (basierend auf tatsächlichem gescraptem Datum)
+            saveData(dataToday);
+            saveData(dataTomorrow);
+            saveData(dataDayAfterTomorrow);
+            saveData(dataDayAfterDayAfterTomorrow);
             
             console.log(`Saved data for 4 days: ${dates.join(', ')}`);
         } catch (error) {
@@ -594,22 +734,31 @@ const createDailyBackup = async () => {
                 currentDateObj = getNextSchoolDay(currentDateObj);
             }
             
-            // Backup Daten speichern
-            const createBackup = (data, date) => {
+            // Backup Daten speichern (basierend auf tatsächlichem gescraptem Datum)
+            const createBackup = (scrapedResult) => {
+                // Extrahiere das tatsächliche Datum aus dateText
+                const actualDate = extractActualDateFromText(scrapedResult.dateText);
+                
+                if (!actualDate) {
+                    console.warn(`Konnte kein Datum aus dateText extrahieren für Backup: ${scrapedResult.dateText}`);
+                    return; // Überspringe, wenn kein Datum extrahiert werden kann
+                }
+                
                 fs.writeFileSync(
-                    path.join(dataDir, `data_${date}.json`),
+                    path.join(dataDir, `data_${actualDate}.json`),
                     JSON.stringify({
-                        data,
-                        courses: [...new Set(data.map(item => item.kurs))]
+                        data: scrapedResult.data,
+                        courses: [...new Set(scrapedResult.data.map(item => item.kurs))],
+                        dateText: scrapedResult.dateText || null // Gescraptes Datum mit Wochentag
                     })
                 );
             };
 
-            // Speichere alle 4 Tage als Backup
-            createBackup(dataToday, dates[0]);
-            createBackup(dataTomorrow, dates[1]);
-            createBackup(dataDayAfterTomorrow, dates[2]);
-            createBackup(dataDayAfterDayAfterTomorrow, dates[3]);
+            // Speichere alle 4 Tage als Backup (basierend auf tatsächlichem gescraptem Datum)
+            createBackup(dataToday);
+            createBackup(dataTomorrow);
+            createBackup(dataDayAfterTomorrow);
+            createBackup(dataDayAfterDayAfterTomorrow);
             
             console.log(`Backup created for 4 days: ${dates.join(', ')}`);
         } catch (error) {
@@ -703,26 +852,44 @@ app.get('/api/date/:date', async (req, res) => {
     }
 });
 
+// Endpunkt zum Abrufen des Index (für Debugging/Monitoring)
+app.get('/api/config', (req, res) => {
+    try {
+        const config = readConfig();
+        res.json(config);
+    } catch (error) {
+        console.error('Fehler beim Abrufen der Config:', error);
+        res.status(500).send('Serverfehler beim Abrufen der Config');
+    }
+});
+
 // Endpunkt für 4 Schultage
 app.get('/api/days', async (req, res) => {
     try {
-        const currentDateStr = getCorrectDate();
-        // Parse das Datum (Format: YYYY-MM-DD)
-        const [year, month, day] = currentDateStr.split('-').map(Number);
-        let currentDateObj = new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0));
+        // Hole alle gescrapten Daten aus dem Index (die nächsten 4)
+        const config = readConfig();
+        const indexEntries = Object.values(config.index)
+            .sort((a, b) => a.actualDate.localeCompare(b.actualDate))
+            .slice(0, 4); // Nimm die ersten 4 Einträge (sortiert nach Datum)
         
-        // Berechne die nächsten 4 Schultage
-        const dates = [];
-        
-        // Stelle sicher, dass wir mit einem Schultag starten
-        if (isWeekend(currentDateObj)) {
-            currentDateObj = getNextSchoolDay(currentDateObj);
-        }
-        
-        // Sammle die nächsten 4 Schultage
-        while (dates.length < 4) {
-            dates.push(currentDateObj.toISOString().split('T')[0]);
-            currentDateObj = getNextSchoolDay(currentDateObj);
+        // Wenn keine Index-Einträge vorhanden, berechne die nächsten 4 Schultage als Fallback
+        let dates = [];
+        if (indexEntries.length === 0) {
+            const currentDateStr = getCorrectDate();
+            const [year, month, day] = currentDateStr.split('-').map(Number);
+            let currentDateObj = new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0));
+            
+            if (isWeekend(currentDateObj)) {
+                currentDateObj = getNextSchoolDay(currentDateObj);
+            }
+            
+            while (dates.length < 4) {
+                dates.push(currentDateObj.toISOString().split('T')[0]);
+                currentDateObj = getNextSchoolDay(currentDateObj);
+            }
+        } else {
+            // Verwende die tatsächlichen gescrapten Daten aus dem Index
+            dates = indexEntries.map(entry => entry.actualDate);
         }
 
         // Hole Daten für alle 4 Tage parallel
@@ -759,7 +926,13 @@ app.get('/api/days', async (req, res) => {
                 ...day2Data.courses || [],
                 ...day3Data.courses || [],
                 ...day4Data.courses || []
-            ].filter(Boolean))]
+            ].filter(Boolean))],
+            dates: [
+                { date: dates[0], dateText: day1Data.dateText || null },
+                { date: dates[1], dateText: day2Data.dateText || null },
+                { date: dates[2], dateText: day3Data.dateText || null },
+                { date: dates[3], dateText: day4Data.dateText || null }
+            ]
         };
 
         res.json(combinedData);
@@ -771,20 +944,51 @@ app.get('/api/days', async (req, res) => {
 
 /**
  * Liest Vertretungsdaten für ein bestimmtes Datum
- * @param {string} date - Datum im Format YYYY-MM-DD
+ * @param {string} date - Datum im Format YYYY-MM-DD (actualDate)
  * @returns {Promise<Object>}
  */
 const getDataForDate = async (date) => {
-    const tempFile = path.join(dataDir, `temp_${date}.json`);
-    const backupFile = path.join(dataDir, `data_${date}.json`);
-
     try {
+        // Suche zuerst im Index nach dem Datum
+        const indexEntry = findInIndex(date);
+        
+        if (indexEntry) {
+            // Verwende die Datei aus dem Index
+            const tempFile = path.join(dataDir, indexEntry.filename);
+            const backupFile = path.join(dataDir, indexEntry.filename.replace('temp_', 'data_'));
+            
+            // Versuche zuerst die temporäre Datei
+            if (fs.existsSync(tempFile)) {
+                const data = JSON.parse(fs.readFileSync(tempFile, 'utf8'));
+                return {
+                    data: data.data || [],
+                    courses: [...new Set((data.courses || []).filter(Boolean))],
+                    dateText: data.dateText || indexEntry.dateText || null
+                };
+            }
+            
+            // Versuche die Backup-Datei
+            if (fs.existsSync(backupFile)) {
+                const data = JSON.parse(fs.readFileSync(backupFile, 'utf8'));
+                return {
+                    data: data.data || [],
+                    courses: [...new Set((data.courses || []).filter(Boolean))],
+                    dateText: data.dateText || indexEntry.dateText || null
+                };
+            }
+        }
+        
+        // Fallback: Alte Logik (für Kompatibilität)
+        const tempFile = path.join(dataDir, `temp_${date}.json`);
+        const backupFile = path.join(dataDir, `data_${date}.json`);
+
         // Versuche zuerst die temporäre Datei zu lesen
         if (fs.existsSync(tempFile)) {
             const data = JSON.parse(fs.readFileSync(tempFile, 'utf8'));
             return {
                 data: data.data || [],
-                courses: [...new Set((data.courses || []).filter(Boolean))]
+                courses: [...new Set((data.courses || []).filter(Boolean))],
+                dateText: data.dateText || null
             };
         }
 
@@ -793,7 +997,8 @@ const getDataForDate = async (date) => {
             const data = JSON.parse(fs.readFileSync(backupFile, 'utf8'));
             return {
                 data: data.data || [],
-                courses: [...new Set((data.courses || []).filter(Boolean))]
+                courses: [...new Set((data.courses || []).filter(Boolean))],
+                dateText: data.dateText || null
             };
         }
 
@@ -801,12 +1006,27 @@ const getDataForDate = async (date) => {
         // saveTemporaryData() hat bereits Lock-Mechanismus, also sicher aufrufen
         await saveTemporaryData();
         
+        // Prüfe erneut im Index (könnte durch laufendes Scraping aktualisiert worden sein)
+        const newIndexEntry = findInIndex(date);
+        if (newIndexEntry) {
+            const tempFileFromIndex = path.join(dataDir, newIndexEntry.filename);
+            if (fs.existsSync(tempFileFromIndex)) {
+                const data = JSON.parse(fs.readFileSync(tempFileFromIndex, 'utf8'));
+                return {
+                    data: data.data || [],
+                    courses: [...new Set((data.courses || []).filter(Boolean))],
+                    dateText: data.dateText || newIndexEntry.dateText || null
+                };
+            }
+        }
+        
         // Prüfe erneut, ob die Datei jetzt existiert (könnte durch laufendes Scraping erstellt worden sein)
         if (fs.existsSync(tempFile)) {
             const data = JSON.parse(fs.readFileSync(tempFile, 'utf8'));
             return {
                 data: data.data || [],
-                courses: [...new Set((data.courses || []).filter(Boolean))]
+                courses: [...new Set((data.courses || []).filter(Boolean))],
+                dateText: data.dateText || null
             };
         }
         
@@ -815,14 +1035,15 @@ const getDataForDate = async (date) => {
             const data = JSON.parse(fs.readFileSync(backupFile, 'utf8'));
             return {
                 data: data.data || [],
-                courses: [...new Set((data.courses || []).filter(Boolean))]
+                courses: [...new Set((data.courses || []).filter(Boolean))],
+                dateText: data.dateText || null
             };
         }
 
-        return { data: [], courses: [] };
+        return { data: [], courses: [], dateText: null };
     } catch (error) {
         console.error(`Fehler beim Lesen der Daten für ${date}:`, error);
-        return { data: [], courses: [] };
+        return { data: [], courses: [], dateText: null };
     }
 };
 

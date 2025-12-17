@@ -386,6 +386,8 @@ class DataManager {
     static currentMode = 'both'; // 'single' oder 'both'
     static currentDate = null; // YYYY-MM-DD für single mode
     static currentDates = null; // {date1, date2} für both mode
+    static currentDateText = null; // Gescraptes Datum für single mode
+    static currentDatesText = null; // Array mit gescrapten Datums-Texten für both mode
 
     static async fetchDataForDate(date) {
         try {
@@ -399,7 +401,8 @@ class DataManager {
             
             return {
                 data: filteredData,
-                courses: courses
+                courses: courses,
+                dateText: data.dateText || null
             };
         } catch (error) {
             console.error('Fehler beim Abrufen der Daten:', error);
@@ -417,7 +420,8 @@ class DataManager {
             const data = await response.json();
             return {
                 data: (data.data || []).filter(item => item.kurs?.trim()),
-                courses: (data.courses || []).filter(Boolean).sort()
+                courses: (data.courses || []).filter(Boolean).sort(),
+                dates: data.dates || null // Array mit {date, dateText} für jeden Tag
             };
         } catch (error) {
             console.error('Fehler beim Abrufen der Daten:', error);
@@ -436,11 +440,20 @@ class DataManager {
                 this.currentMode = 'both';
                 this.currentDates = dates;
                 this.currentDate = null;
+                this.currentDateText = null;
+                // Speichere die gescrapten Datums-Texte
+                if (result.dates && Array.isArray(result.dates)) {
+                    this.currentDatesText = result.dates.map(d => d.dateText || null);
+                } else {
+                    this.currentDatesText = null;
+                }
             } else {
                 result = await this.fetchDataForDate(dateOrDates);
                 this.currentMode = 'single';
                 this.currentDate = dateOrDates;
                 this.currentDates = null;
+                this.currentDateText = result.dateText || null;
+                this.currentDatesText = null;
             }
             
             this.allData = result.data;
@@ -489,18 +502,39 @@ class UIManager {
         if (mode === 'both') {
             // dateOrDates ist jetzt ein Array von Datumsstrings
             const dates = Array.isArray(dateOrDates) ? dateOrDates : [dateOrDates];
-            const dateObjs = dates.map(d => DateManager.stringToDate(d));
-            const formattedDates = dateObjs.map(d => DateManager.formatDate(d));
+            
+            // Verwende gescraptes Datum, falls verfügbar, sonst berechnetes Datum
+            let dateTexts = [];
+            if (DataManager.currentDatesText && DataManager.currentDatesText.length > 0) {
+                // Verwende gescraptes Datum, wenn verfügbar
+                dateTexts = DataManager.currentDatesText.map((dateText, index) => {
+                    if (dateText) {
+                        return dateText;
+                    }
+                    // Fallback auf berechnetes Datum
+                    const dateObj = DateManager.stringToDate(dates[index]);
+                    return DateManager.formatDate(dateObj);
+                });
+            } else {
+                // Fallback: Berechne Datum
+                const dateObjs = dates.map(d => DateManager.stringToDate(d));
+                dateTexts = dateObjs.map(d => DateManager.formatDate(d));
+            }
             
             // Zeige die ersten 2 und letzten 2 Tage, oder alle wenn weniger als 4
             if (dates.length <= 2) {
-                DOM.date.textContent = formattedDates.join(' und ');
+                DOM.date.textContent = dateTexts.join(' und ');
             } else {
-                DOM.date.textContent = `${formattedDates[0]}, ${formattedDates[1]}, ${formattedDates[2]} und ${formattedDates[3]}`;
+                DOM.date.textContent = `${dateTexts[0]}, ${dateTexts[1]}, ${dateTexts[2]} und ${dateTexts[3]}`;
             }
         } else {
-            const dateObj = DateManager.stringToDate(dateOrDates);
-            DOM.date.textContent = DateManager.formatDate(dateObj);
+            // Verwende gescraptes Datum, falls verfügbar, sonst berechnetes Datum
+            if (DataManager.currentDateText) {
+                DOM.date.textContent = DataManager.currentDateText;
+            } else {
+                const dateObj = DateManager.stringToDate(dateOrDates);
+                DOM.date.textContent = DateManager.formatDate(dateObj);
+            }
         }
 
         // Zeige/Verstecke die Datumsspalte
@@ -548,6 +582,27 @@ class UIManager {
         });
     }
 
+    static getDateTextForDate(dateStr) {
+        // Im "both" Modus (4 Tage) nur Wochentag anzeigen
+        if (DataManager.currentMode === 'both' && DataManager.currentDates && DataManager.currentDatesText) {
+            const index = DataManager.currentDates.indexOf(dateStr);
+            if (index !== -1 && DataManager.currentDatesText[index]) {
+                // Extrahiere nur den Wochentag aus dateText (z.B. "Freitag, 19.12.2025" -> "Freitag")
+                const dateText = DataManager.currentDatesText[index];
+                const weekdayMatch = dateText.match(/^([A-Za-zäöüÄÖÜß]+),/);
+                if (weekdayMatch) {
+                    return weekdayMatch[1];
+                }
+                return dateText;
+            }
+        }
+        // Fallback: Berechne Datum (für single mode)
+        if (dateStr) {
+            return DateManager.formatDateFromString(dateStr);
+        }
+        return '-';
+    }
+
     static renderData(data) {
         if (!data || data.length === 0) {
             this.showMessage('Keine Daten verfügbar');
@@ -557,10 +612,11 @@ class UIManager {
         DOM.dataBody.innerHTML = '';
         data.forEach(item => {
             const row = document.createElement('tr');
+            const dateText = item.datum ? this.getDateTextForDate(item.datum) : '-';
             row.innerHTML = `
                 <td>${item.kurs || '-'}</td>
                 <td class="date-column" ${DataManager.currentMode !== 'both' ? 'style="display:none"' : ''}>
-                    ${item.datum ? DateManager.formatDateFromString(item.datum) : '-'}
+                    ${dateText}
                 </td>
                 <td>${item.stunde || '-'}</td>
                 <td>${item.raum || '-'}</td>
@@ -767,10 +823,13 @@ class EventHandler {
             UIManager.updateDatePicker(date);
             UIManager.setBothDaysButtonActive(false);
             UIManager.setDatePickerActive(true);
-            UIManager.updateDateDisplay('single', date);
 
             // Fetch data
             const data = await DataManager.fetchData('single', date);
+            
+            // Aktualisiere Datumsanzeige mit gescraptem Datum
+            UIManager.updateDateDisplay('single', date);
+            
             UIManager.updateCourseFilter(data.courses);
             
             // Set course selection
@@ -804,7 +863,6 @@ class EventHandler {
             UIManager.updateDatePicker(null); // Reset auf heutiges Datum
             UIManager.setBothDaysButtonActive(true);
             UIManager.setDatePickerActive(false);
-            UIManager.updateDateDisplay('both', dates);
 
             // Fetch data - verwende Standard-Endpunkt für 4 Schultage
             const response = await fetch(API.DAYS);
@@ -815,6 +873,16 @@ class EventHandler {
             DataManager.currentMode = 'both';
             DataManager.currentDates = dates;
             DataManager.currentDate = null;
+            
+            // Speichere die gescrapten Datums-Texte
+            if (data.dates && Array.isArray(data.dates)) {
+                DataManager.currentDatesText = data.dates.map(d => d.dateText || null);
+            } else {
+                DataManager.currentDatesText = null;
+            }
+            
+            // Aktualisiere Datumsanzeige mit gescraptem Datum
+            UIManager.updateDateDisplay('both', dates);
             
             UIManager.updateCourseFilter(data.courses || []);
             
