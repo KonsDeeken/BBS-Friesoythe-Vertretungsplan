@@ -525,11 +525,11 @@ class UIManager {
                 // Verwende direkt das dateText aus dem JSON-Mapping
                 if (DataManager.dateToDateTextMap[dateStr]) {
                     return DataManager.dateToDateTextMap[dateStr];
-                }
+                    }
                 // Fallback: Berechne Datum nur wenn nicht im Mapping vorhanden
                 const dateObj = DateManager.stringToDate(dateStr);
-                return DateManager.formatDate(dateObj);
-            });
+                    return DateManager.formatDate(dateObj);
+                });
             
             // Zeige die ersten 2 und letzten 2 Tage, oder alle wenn weniger als 4
             if (dates.length <= 2) {
@@ -600,7 +600,7 @@ class UIManager {
         if (dateStr && DataManager.dateToDateTextMap[dateStr]) {
             const dateText = DataManager.dateToDateTextMap[dateStr];
             
-            // Im "both" Modus (4 Tage) nur Wochentag anzeigen
+        // Im "both" Modus (4 Tage) nur Wochentag anzeigen
             if (DataManager.currentMode === 'both') {
                 // Extrahiere nur den Wochentag aus dateText (z.B. "Freitag, 19.12.2025" -> "Freitag")
                 const weekdayMatch = dateText.match(/^([A-Za-zäöüÄÖÜß]+),/);
