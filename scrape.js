@@ -6,7 +6,7 @@ const fs = require('fs');
 
 // Konstanten
 const PORT = process.env.PORT || 3000;
-const BACKUP_HOUR = 3; // Uhrzeit für tägliches Backup
+const BACKUP_HOUR = 6; // Uhrzeit für tägliches Backup
 const UPDATE_INTERVAL = 600000; // 10 Minuten in Millisekunden
 const SWITCH_HOUR = 17; // Ab dieser Uhrzeit wird auf den nächsten Tag umgeschaltet
 
@@ -524,15 +524,15 @@ const cleanupOldTempFiles = () => {
         const config = readConfig();
         const files = fs.readdirSync(dataDir);
         
+        // Bestimme das aktuelle Datum basierend auf deutscher Zeit und 17-Uhr-Regel
+        const currentDateStr = getCorrectDate();
+        
         // Hole die tatsächlichen gescrapten Daten aus dem Index (die nächsten 4)
         const actualDatesToKeep = Object.values(config.index)
             .map(entry => entry.actualDate)
             .filter(date => {
-                // Prüfe, ob das Datum heute oder in der Zukunft liegt
-                const entryDate = new Date(date + 'T00:00:00');
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                return entryDate >= today;
+                // Prüfe, ob das Datum heute oder in der Zukunft liegt (basierend auf getCorrectDate)
+                return date >= currentDateStr;
             })
             .sort()
             .slice(0, 4); // Nimm die nächsten 4
@@ -866,16 +866,25 @@ app.get('/api/config', (req, res) => {
 // Endpunkt für 4 Schultage
 app.get('/api/days', async (req, res) => {
     try {
-        // Hole alle gescrapten Daten aus dem Index (die nächsten 4)
+        // Bestimme das aktuelle Datum basierend auf deutscher Zeit und 17-Uhr-Regel
+        const currentDateStr = getCorrectDate();
+        
+        // Hole alle gescrapten Daten aus dem Index
         const config = readConfig();
-        const indexEntries = Object.values(config.index)
+        
+        // Filtere Index-Einträge: Nur Daten von heute oder in der Zukunft (basierend auf getCorrectDate)
+        const filteredIndexEntries = Object.values(config.index)
+            .filter(entry => {
+                // Vergleiche das Datum im Index mit dem aktuellen Datum
+                return entry.actualDate >= currentDateStr;
+            })
             .sort((a, b) => a.actualDate.localeCompare(b.actualDate))
             .slice(0, 4); // Nimm die ersten 4 Einträge (sortiert nach Datum)
         
-        // Wenn keine Index-Einträge vorhanden, berechne die nächsten 4 Schultage als Fallback
+        // Wenn keine Index-Einträge vorhanden oder nicht genug, berechne die nächsten 4 Schultage
         let dates = [];
-        if (indexEntries.length === 0) {
-            const currentDateStr = getCorrectDate();
+        if (filteredIndexEntries.length === 0) {
+            // Fallback: Berechne die nächsten 4 Schultage
             const [year, month, day] = currentDateStr.split('-').map(Number);
             let currentDateObj = new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0));
             
@@ -888,8 +897,21 @@ app.get('/api/days', async (req, res) => {
                 currentDateObj = getNextSchoolDay(currentDateObj);
             }
         } else {
-            // Verwende die tatsächlichen gescrapten Daten aus dem Index
-            dates = indexEntries.map(entry => entry.actualDate);
+            // Verwende die gefilterten gescrapten Daten aus dem Index
+            dates = filteredIndexEntries.map(entry => entry.actualDate);
+            
+            // Wenn weniger als 4 Einträge vorhanden, ergänze mit berechneten Daten
+            if (dates.length < 4) {
+                const lastDate = dates[dates.length - 1];
+                const [year, month, day] = lastDate.split('-').map(Number);
+                let currentDateObj = new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0));
+                currentDateObj = getNextSchoolDay(currentDateObj);
+                
+                while (dates.length < 4) {
+                    dates.push(currentDateObj.toISOString().split('T')[0]);
+                    currentDateObj = getNextSchoolDay(currentDateObj);
+                }
+            }
         }
 
         // Hole Daten für alle 4 Tage parallel

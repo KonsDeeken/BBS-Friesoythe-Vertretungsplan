@@ -918,8 +918,11 @@ select:hover {
     margin-top: 12px;
     background: var(--card-background);
     border-radius: var(--border-radius);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    /* Verwende Border statt box-shadow, um Überlappungen zu vermeiden */
+    border: 1px solid rgba(0, 0, 0, 0.08);
     position: relative;
+    /* Verhindere, dass der Schatten sich über die Tabelle legt */
+    isolation: isolate;
 }
 
 .loading-indicator {
@@ -1003,7 +1006,9 @@ select:hover {
     width: 30px;
     background: linear-gradient(to left, rgba(244, 244, 244, 0.9), transparent);
     pointer-events: none;
-    z-index: 1;
+    z-index: 0;
+    /* Stelle sicher, dass der Indikator nur am rechten Rand ist und nicht über die Tabelle legt */
+    margin-right: 0;
 }
 
 /* Desktop: Kein Scroll-Indikator */
@@ -1021,6 +1026,11 @@ table {
         var(--table-gradient-start) 0%,
         var(--table-gradient-end) 100%);
     table-layout: auto;
+    /* Stelle sicher, dass die Tabelle korrekt gerendert wird */
+    position: relative;
+    z-index: 0;
+    /* Verhindere, dass Borders sich überlappen */
+    border-spacing: 0;
 }
 
 th, td {
@@ -1033,6 +1043,10 @@ th, td {
     white-space: nowrap;
     background: transparent;
     transition: background-color 0.1s ease;
+    /* Verhindere, dass Borders sich überlappen */
+    border-right: none;
+    border-left: none;
+    border-top: none;
 }
 
 /* Desktop: Größere Schrift und Padding */

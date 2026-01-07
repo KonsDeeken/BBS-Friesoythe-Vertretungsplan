@@ -388,6 +388,7 @@ class DataManager {
     static currentDates = null; // {date1, date2} für both mode
     static currentDateText = null; // Gescraptes Datum für single mode
     static currentDatesText = null; // Array mit gescrapten Datums-Texten für both mode
+    static dateToDateTextMap = {}; // Mapping von datum (YYYY-MM-DD) zu dateText aus JSON
 
     static async fetchDataForDate(date) {
         try {
@@ -418,6 +419,17 @@ class DataManager {
             if (!response.ok) throw new Error('Netzwerkantwort war nicht ok');
             
             const data = await response.json();
+            
+            // Erstelle Mapping von datum (YYYY-MM-DD) zu dateText aus JSON
+            this.dateToDateTextMap = {};
+            if (data.dates && Array.isArray(data.dates)) {
+                data.dates.forEach(d => {
+                    if (d.date && d.dateText) {
+                        this.dateToDateTextMap[d.date] = d.dateText;
+                    }
+                });
+            }
+            
             return {
                 data: (data.data || []).filter(item => item.kurs?.trim()),
                 courses: (data.courses || []).filter(Boolean).sort(),
@@ -454,6 +466,11 @@ class DataManager {
                 this.currentDates = null;
                 this.currentDateText = result.dateText || null;
                 this.currentDatesText = null;
+                // Erstelle Mapping für single mode
+                this.dateToDateTextMap = {};
+                if (result.dateText && dateOrDates) {
+                    this.dateToDateTextMap[dateOrDates] = result.dateText;
+                }
             }
             
             this.allData = result.data;
@@ -503,23 +520,16 @@ class UIManager {
             // dateOrDates ist jetzt ein Array von Datumsstrings
             const dates = Array.isArray(dateOrDates) ? dateOrDates : [dateOrDates];
             
-            // Verwende gescraptes Datum, falls verfügbar, sonst berechnetes Datum
-            let dateTexts = [];
-            if (DataManager.currentDatesText && DataManager.currentDatesText.length > 0) {
-                // Verwende gescraptes Datum, wenn verfügbar
-                dateTexts = DataManager.currentDatesText.map((dateText, index) => {
-                    if (dateText) {
-                        return dateText;
+            // Verwende gescraptes Datum direkt aus dem Mapping, falls verfügbar
+            let dateTexts = dates.map(dateStr => {
+                // Verwende direkt das dateText aus dem JSON-Mapping
+                if (DataManager.dateToDateTextMap[dateStr]) {
+                    return DataManager.dateToDateTextMap[dateStr];
                     }
-                    // Fallback auf berechnetes Datum
-                    const dateObj = DateManager.stringToDate(dates[index]);
+                // Fallback: Berechne Datum nur wenn nicht im Mapping vorhanden
+                const dateObj = DateManager.stringToDate(dateStr);
                     return DateManager.formatDate(dateObj);
                 });
-            } else {
-                // Fallback: Berechne Datum
-                const dateObjs = dates.map(d => DateManager.stringToDate(d));
-                dateTexts = dateObjs.map(d => DateManager.formatDate(d));
-            }
             
             // Zeige die ersten 2 und letzten 2 Tage, oder alle wenn weniger als 4
             if (dates.length <= 2) {
@@ -528,10 +538,13 @@ class UIManager {
                 DOM.date.textContent = `${dateTexts[0]}, ${dateTexts[1]}, ${dateTexts[2]} und ${dateTexts[3]}`;
             }
         } else {
-            // Verwende gescraptes Datum, falls verfügbar, sonst berechnetes Datum
-            if (DataManager.currentDateText) {
+            // Verwende gescraptes Datum direkt aus dem Mapping, falls verfügbar
+            if (dateOrDates && DataManager.dateToDateTextMap[dateOrDates]) {
+                DOM.date.textContent = DataManager.dateToDateTextMap[dateOrDates];
+            } else if (DataManager.currentDateText) {
                 DOM.date.textContent = DataManager.currentDateText;
             } else {
+                // Fallback: Berechne Datum nur wenn nicht im Mapping vorhanden
                 const dateObj = DateManager.stringToDate(dateOrDates);
                 DOM.date.textContent = DateManager.formatDate(dateObj);
             }
@@ -583,20 +596,25 @@ class UIManager {
     }
 
     static getDateTextForDate(dateStr) {
+        // Verwende direkt das dateText aus dem JSON-Mapping
+        if (dateStr && DataManager.dateToDateTextMap[dateStr]) {
+            const dateText = DataManager.dateToDateTextMap[dateStr];
+            
         // Im "both" Modus (4 Tage) nur Wochentag anzeigen
-        if (DataManager.currentMode === 'both' && DataManager.currentDates && DataManager.currentDatesText) {
-            const index = DataManager.currentDates.indexOf(dateStr);
-            if (index !== -1 && DataManager.currentDatesText[index]) {
+            if (DataManager.currentMode === 'both') {
                 // Extrahiere nur den Wochentag aus dateText (z.B. "Freitag, 19.12.2025" -> "Freitag")
-                const dateText = DataManager.currentDatesText[index];
                 const weekdayMatch = dateText.match(/^([A-Za-zäöüÄÖÜß]+),/);
                 if (weekdayMatch) {
                     return weekdayMatch[1];
                 }
                 return dateText;
+            } else {
+                // Im single mode das vollständige Datum anzeigen
+                return dateText;
             }
         }
-        // Fallback: Berechne Datum (für single mode)
+        
+        // Fallback: Nur wenn kein dateText im Mapping vorhanden ist
         if (dateStr) {
             return DateManager.formatDateFromString(dateStr);
         }
@@ -857,8 +875,6 @@ class EventHandler {
     static async loadBothDays(initialCourse = null) {
         try {
             UIManager.showLoadingIndicator();
-            const defaultDates = DateManager.getDefaultDates();
-            const dates = defaultDates.dates; // Array von 4 Datumsstrings
 
             UIManager.updateDatePicker(null); // Reset auf heutiges Datum
             UIManager.setBothDaysButtonActive(true);
@@ -871,13 +887,27 @@ class EventHandler {
             
             DataManager.allData = (data.data || []).filter(item => item.kurs?.trim());
             DataManager.currentMode = 'both';
-            DataManager.currentDates = dates;
             DataManager.currentDate = null;
             
-            // Speichere die gescrapten Datums-Texte
+            // Verwende die tatsächlichen Daten aus dem JSON statt berechnete Daten
+            let dates = [];
+            DataManager.dateToDateTextMap = {};
             if (data.dates && Array.isArray(data.dates)) {
+                // Extrahiere die Datumsstrings direkt aus dem JSON
+                dates = data.dates.map(d => d.date).filter(Boolean);
+                DataManager.currentDates = dates;
                 DataManager.currentDatesText = data.dates.map(d => d.dateText || null);
+                // Erstelle Mapping für direkten Zugriff
+                data.dates.forEach(d => {
+                    if (d.date && d.dateText) {
+                        DataManager.dateToDateTextMap[d.date] = d.dateText;
+                    }
+                });
             } else {
+                // Fallback: Berechne Daten nur wenn JSON keine Daten hat
+                const defaultDates = DateManager.getDefaultDates();
+                dates = defaultDates.dates;
+                DataManager.currentDates = dates;
                 DataManager.currentDatesText = null;
             }
             
